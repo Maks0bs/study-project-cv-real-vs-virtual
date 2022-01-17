@@ -1,0 +1,3 @@
+# ignore PyCharm/IntelliJ IDE files
+.idea/
+config_script.json
