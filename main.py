@@ -1,23 +1,14 @@
 from constants.cmd import *
 from constants.general import MODE_DEFAULT
 import argparse
+from common.cmd import CmdArgumentExtractor
+from constants.general import ENV_OS
 
 # TODO: the jupyter notebook should load all necessary packages
-#  (maybe except for object_detection that gets loaded dynamically)
-
-# TODO: make another folder "common" where we will put all classes / fcts that are used
-#  in all scripts / modules.
-#  The CmdArgumentExtractor class should go there, as it will be used in every module
-#  (in each module if __name__=='__main__' block to parse args and execute each module individually)
+#  (maybe except for detect that gets loaded dynamically)
 
 
-class CmdArgumentExtractor:
-
-    def __init__(self, args=None):
-        if not (args is None):
-            self.args_dict = vars(self.get_parser().parse_args(args))
-        else:
-            self.args_dict = vars(self.get_parser().parse_args())
+class MainArgumentExtractor(CmdArgumentExtractor):
 
     @staticmethod
     def get_parser():
@@ -33,9 +24,6 @@ class CmdArgumentExtractor:
         )
         return parser
 
-    def get_extracted_arg(self, arg):
-        return self.args_dict[arg]
-
 
 def get_kwargs_for_execute(extractor):
     args = {}
@@ -47,10 +35,10 @@ def get_kwargs_for_execute(extractor):
 
 
 def execute(mode=MODE_DEFAULT):
-    print(mode)
+    print(ENV_OS)
 
 
 if __name__ == '__main__':
-    args_extractor = CmdArgumentExtractor()
+    args_extractor = MainArgumentExtractor()
     kwargs = get_kwargs_for_execute(args_extractor)
     execute(**kwargs)
