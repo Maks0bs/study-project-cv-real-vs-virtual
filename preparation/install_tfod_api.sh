@@ -1,4 +1,6 @@
-# TODO add silent mode here (without logging git clone data)
+set -e
+set -o pipefail
+
 if [ $# -eq 0 ]
 then
   echo "No arguments supplied"

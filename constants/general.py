@@ -4,9 +4,19 @@ from platform import system
 # | Execution modes |
 # +-----------------+
 
-MODE_COLAB = 'mode_colab'
-MODE_LOCAL = 'mode_local'
-MODE_DEFAULT = MODE_LOCAL
+MODE_VERBOSE = 'mode_verbose'
+MODE_SILENT = 'mode_silent'
+MODE_DEFAULT = MODE_SILENT
+
+# +--------------+
+# | Verification |
+# +--------------+
+
+VERIFY_BOTH = 'verify_both'
+VERIFY_NONE = 'verify_none'
+VERIFY_AFTER = 'verify_after'
+VERIFY_BEFORE = 'verify_before'
+VERIFY_DEFAULT = VERIFY_BOTH
 
 # +----------------+
 # | OS information |

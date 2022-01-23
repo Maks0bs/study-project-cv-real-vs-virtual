@@ -16,3 +16,7 @@ class CmdArgumentExtractor(ABC):
 
     def get_extracted_arg(self, arg):
         return self.args_dict[arg] if (arg in self.args_dict) else None
+
+    @abstractmethod
+    def get_kwargs_for_execute(self):
+        pass

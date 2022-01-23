@@ -1,8 +1,10 @@
+import argparse
+
+from common.cmd import CmdArgumentExtractor
 from constants.cmd import *
 from constants.general import MODE_DEFAULT
-import argparse
-from common.cmd import CmdArgumentExtractor
-from constants.general import ENV_OS
+from preparation import prepare_workspace
+
 
 # TODO: the jupyter notebook should load all necessary packages
 #  (maybe except for detect that gets loaded dynamically)
@@ -20,25 +22,24 @@ class MainArgumentExtractor(CmdArgumentExtractor):
         parser.add_argument(
             short_arg_mode, full_arg_mode,
             nargs='?', type=str,
-            choices=list(CMD_ARG_MODE_VALUES_TO_MODE_MAP.keys()),
+            choices=list(CMD_MODE_ARG_TO_VAL_MAP.keys()),
         )
         return parser
 
+    def get_kwargs_for_execute(self):
+        args = {}
+        mode_value = self.get_extracted_arg(CMD_ARG_MODE)
+        if mode_value:
+            args['mode'] = CMD_MODE_ARG_TO_VAL_MAP[mode_value]
 
-def get_kwargs_for_execute(extractor):
-    args = {}
-    mode_value = extractor.get_extracted_arg(CMD_ARG_MODE)
-    if mode_value:
-        args['mode'] = CMD_ARG_MODE_VALUES_TO_MODE_MAP[mode_value]
-
-    return args
+        return args
 
 
 def execute(mode=MODE_DEFAULT):
-    print(ENV_OS)
+    prepare_workspace.execute(mode=mode)
 
 
 if __name__ == '__main__':
     args_extractor = MainArgumentExtractor()
-    kwargs = get_kwargs_for_execute(args_extractor)
+    kwargs = args_extractor.get_kwargs_for_execute()
     execute(**kwargs)

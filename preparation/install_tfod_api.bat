@@ -16,7 +16,7 @@ IF "%2"=="" (
 IF exist %install_path%\ (
     echo object_detection folder exists, no need to clone again
 ) ELSE (
-    git clone "https://github.com/tensorflow/models" "%install_path%"
+    git clone "https://github.com/tensorflow/models" "%install_path%" || goto :error
 )
 
 IF not exist %install_path%\research\ IF exist %install_path%\help\ goto tfod_installed
@@ -30,53 +30,58 @@ goto install_packages
 :restructure_files
 FOR /d %%a IN ("%install_path%\*") DO (
     IF /i not "%%~nxa"=="research" (
-        RD /S /Q "%%a"
+        RD /S /Q "%%a" || goto :error
     )
 )
-RD /S /Q "%install_path%\.git\"
+RD /S /Q "%install_path%\.git\" || goto :error
 
 FOR %%a IN ("%install_path%\*") DO (
-    DEL "%%a"
+    DEL "%%a" || goto :error
 )
-move "%install_path%\research\object_detection" "%install_path%\"
-move "%install_path%\research\slim" "%install_path%\"
-RD /S /Q  "%install_path%\research\"
-mkdir "%install_path%\help"
+move "%install_path%\research\object_detection" "%install_path%\" || goto :error
+move "%install_path%\research\slim" "%install_path%\" || goto :error
+RD /S /Q  "%install_path%\research\" || goto :error
+mkdir "%install_path%\help" || goto :error
 
 :install_packages
-cd %install_path%
+cd %install_path% || goto :error
 :: obtain absolute path
 set install_path=%cd%
 
 cd %install_path%\help
-powershell.exe -Command "Invoke-WebRequest -OutFile protoc.zip %protoc_download_link%"
-tar -xf protoc.zip
-cd %install_path%
-.\help\bin\protoc.exe .\object_detection\protos\*.proto --python_out=.
+powershell.exe -Command "Invoke-WebRequest -OutFile protoc.zip %protoc_download_link%" || goto :error
+tar -xf protoc.zip || goto :error
+cd %install_path% || goto :error
+.\help\bin\protoc.exe .\object_detection\protos\*.proto --python_out=. || goto :error
 @REM for %%a in ("%install_path%\object_detection\protos\*.proto") do %install_path%\help\bin\protoc.exe %install_path%\object_detection\protos\%%a --python_out=%install_path%
 
-copy %install_path%\object_detection\packages\tf2\setup.py %install_path%\
-cd %install_path%
-python setup.py build
-python setup.py install
-cd %install_path%\slim
+copy %install_path%\object_detection\packages\tf2\setup.py %install_path%\ || goto :error
+cd %install_path% || goto :error
+python setup.py build || goto :error
+python setup.py install || goto :error
+cd %install_path%\slim || goto :error
 @REM python -m pip install .
-pip install -e .
+pip install -e . || goto :error
 
 :: fix possible errors
-pip install numpy
-pip install wrapt
-pip install opt_einsum
-pip install gast
-pip install astunparse
-pip install termcolor
-pip install tensorflow --upgrade
-pip uninstall -y google
-pip install google-cloud
-pip uninstall -y protobuf
-pip uninstall -y google
-pip install google
-pip install protobuf
-pip install tensorflow-gpu --upgrade
-pip install matplotlib
-pip install pyyaml
+pip install numpy || goto :error
+pip install wrapt || goto :error
+pip install opt_einsum || goto :error
+pip install gast || goto :error
+pip install astunparse || goto :error
+pip install termcolor || goto :error
+pip install tensorflow --upgrade || goto :error
+pip uninstall -y google || goto :error
+pip install google-cloud || goto :error
+pip uninstall -y protobuf || goto :error
+pip uninstall -y google || goto :error
+pip install google || goto :error
+pip install protobuf || goto :error
+pip install tensorflow-gpu --upgrade || goto :error
+pip install matplotlib || goto :error
+pip install pyyaml || goto :error
+goto :EOF
+
+:error
+echo Failed with error #%errorlevel%.
+exit /b %errorlevel%
