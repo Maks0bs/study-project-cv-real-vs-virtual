@@ -1,9 +1,16 @@
-from constants.general import MODE_DEFAULT, VERIFY_DEFAULT
+from constants.general import *
 from constants.cmd import *
-from main import MainArgumentExtractor
-from verify import verify_tfod_api, verify_pretrained_model
+from constants.paths import *
+import os
 
-# TODO: const which points to install bash and batch scripts
+from main import MainArgumentExtractor
+from .verify import verify_tfod_api, verify_pretrained_model
+from common import config
+from common.config import TFOD_API_INSTALL_DIRECTORY
+import subprocess
+
+INSTALL_TFOD_API_SCRIPT_WINDOWS = os.path.join(PREPARATION_PKG_PATH, 'install_tfod_api.bat')
+INSTALL_TFOD_API_SCRIPT_LINUX = os.path.join(PREPARATION_PKG_PATH, 'install_tfod_api.sh')
 
 
 class PreparationArgumentExtractor(MainArgumentExtractor):
@@ -33,20 +40,21 @@ class PreparationArgumentExtractor(MainArgumentExtractor):
         return args
 
 
-def install_tfod_api():
-    pass
+def install_tfod_api(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
+    if (verify in [VERIFY_BEFORE, VERIFY_BOTH]) and verify_tfod_api(ENV_OS):
+        return True
+
+    if ENV_OS == OS_WINDOWS:
+        print(config.get_reader().get_value(TFOD_API_INSTALL_DIRECTORY))
+        # args = [INSTALL_TFOD_API_SCRIPT_WINDOWS, ]
+        # process = subprocess.Popen()
+
+
     # depending on OS run corresponding func
     # in each such func run corresponding verification if necessary flags are set
     # check for exitcode of verify-scripts. If != 0 then we have error
     # and we proceed to install (before) or we cancel installation process (if error on after)
 
-
-def install_tfod_api_linux():
-    pass
-
-
-def install_tfod_api_windows():
-    pass
 
 
 def load_pretrained_model():
@@ -54,4 +62,11 @@ def load_pretrained_model():
 
 
 def execute(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
-    pass
+    print(mode, verify)
+    install_tfod_api(mode, verify)
+
+
+if __name__ == '__main__':
+    args_extractor = PreparationArgumentExtractor()
+    kwargs = args_extractor.get_kwargs_for_execute()
+    execute(**kwargs)

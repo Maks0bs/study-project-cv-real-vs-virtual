@@ -2,6 +2,10 @@
 .idea/
 config.json
 
+__pycache__/
+
+studienprojekt_cv_rvv.egg-info/
+
 tfod_api/
 
 TODO.md
