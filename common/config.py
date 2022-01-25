@@ -1,9 +1,6 @@
 import json
-from constants.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH, PROJECT_ROOT
+from studienprojekt_cv_rvv.constants.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH, PROJECT_ROOT
 import os
-
-
-
 
 TFOD_API_INSTALL_DIRECTORY = 'tfod_api_install_directory'
 
@@ -19,7 +16,7 @@ class ConfigReader:
         try:
             with open(self.config_path, 'r') as json_file:
                 self.config_dict = json.load(json_file)
-        except IOError:
+        except (IOError, TypeError):
             print('could not read config file')
 
     def read_raw_value(self, key):

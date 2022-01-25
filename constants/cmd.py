@@ -1,4 +1,4 @@
-from general import \
+from .general import \
     MODE_SILENT as _MODE_SILENT, MODE_VERBOSE as _MODE_VERBOSE, \
     VERIFY_BOTH as _VER_BO, VERIFY_NONE as _VER_NO, VERIFY_AFTER as _VER_AF, VERIFY_BEFORE as _VER_BE
 

@@ -1,4 +1,4 @@
 {
   "tfod_api_install_directory": "${PROJECT_ROOT}/tfod_api",
-  "pretrained_models_directory": "${PROJECT_ROOT}/pretrained_models",
+  "pretrained_models_directory": "${PROJECT_ROOT}/pretrained_models"
 }

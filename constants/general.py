@@ -6,7 +6,7 @@ from platform import system
 
 MODE_VERBOSE = 'mode_verbose'
 MODE_SILENT = 'mode_silent'
-MODE_DEFAULT = MODE_SILENT
+MODE_DEFAULT = MODE_VERBOSE
 
 # +--------------+
 # | Verification |

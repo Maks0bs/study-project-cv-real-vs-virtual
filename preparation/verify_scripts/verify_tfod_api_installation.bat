@@ -3,6 +3,8 @@ setlocal EnableDelayedExpansion
 
 if [%1]==[] goto usage
 
+goto :error
+
 python "%1\object_detection\builders\model_builder_tf2_test.py" || goto :error
 goto :eof
 

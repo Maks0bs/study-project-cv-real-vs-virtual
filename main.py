@@ -1,9 +1,9 @@
 import argparse
 
-from common.cmd import CmdArgumentExtractor
-from constants.cmd import *
-from constants.general import MODE_DEFAULT
-from preparation import prepare_workspace
+from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
+from studienprojekt_cv_rvv.constants.cmd import *
+from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT
+from studienprojekt_cv_rvv.preparation import prepare_workspace
 
 
 # TODO: the jupyter notebook should load all necessary packages
