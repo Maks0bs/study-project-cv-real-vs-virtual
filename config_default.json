@@ -1,4 +1,10 @@
 {
   "tfod_api_install_directory": "${PROJECT_ROOT}/tfod_api",
-  "pretrained_models_directory": "${PROJECT_ROOT}/pretrained_models"
+  "pretrained_models_directory": "${PROJECT_ROOT}/models/pretrained",
+  "trained_models_directory": "${PROJECT_ROOT}/models/trained",
+  "pretrained_model_name": "ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8",
+  "pretrained_model_download_link": "http://download.tensorflow.org/models/object_detection/tf2/20200711/${pretrained_model_name}.tar.gz",
+  "trained_model_name": "my_model",
+  "dataset_definitions_path": "${PROJECT_ROOT}/data/my_dataset/definitions",
+  "dataset_images_path": "${PROJECT_ROOT}/data/my_dataset/images"
 }

@@ -5,14 +5,16 @@ import os
 
 from studienprojekt_cv_rvv.common import config
 from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
-from studienprojekt_cv_rvv.common.config import TFOD_API_INSTALL_DIRECTORY
 from studienprojekt_cv_rvv.constants.cmd import *
 from studienprojekt_cv_rvv.constants.general import *
 from studienprojekt_cv_rvv.constants.paths import *
-from verify import verify_tfod_api
+from studienprojekt_cv_rvv.preparation.verify import verify_tfod_api, verify_pretrained_model
 
 INSTALL_TFOD_API_SCRIPT_WINDOWS = os.path.join(PREPARATION_PKG_PATH, 'install_tfod_api.bat')
 INSTALL_TFOD_API_SCRIPT_LINUX = os.path.join(PREPARATION_PKG_PATH, 'install_tfod_api.sh')
+
+PT_MODEL_LOAD_SCRIPT_WINDOWS = os.path.join(PREPARATION_PKG_PATH, 'load_pretrained_model.bat')
+PT_MODEL_LOAD_SCRIPT_LINUX = os.path.join(PREPARATION_PKG_PATH, 'load_pretrained_model.sh')
 
 
 class PreparationArgumentExtractor(CmdArgumentExtractor):
@@ -20,7 +22,7 @@ class PreparationArgumentExtractor(CmdArgumentExtractor):
     @staticmethod
     def get_parser():
         description = \
-            'Script which prepares the workspace for all other activities' +\
+            'Script which prepares the workspace for all other activities' + \
             'like training, evaluation and object detection'
         parser = argparse.ArgumentParser(
             description=description
@@ -56,10 +58,11 @@ class PreparationArgumentExtractor(CmdArgumentExtractor):
 
 
 def install_tfod_api(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
-    tfod_api_path = config.get_reader().get_value(TFOD_API_INSTALL_DIRECTORY)
+    tfod_api_path = config.get_reader().get_value(config.TFOD_API_INSTALL_DIRECTORY)
     # we check before if necessary and if tfod api is already installed
     # we don't need to do anything
-    if (verify in [VERIFY_BEFORE, VERIFY_BOTH]) and verify_tfod_api(ENV_OS, tfod_api_path):
+    should_verify = (verify in [VERIFY_BEFORE, VERIFY_BOTH])
+    if should_verify and verify_tfod_api(ENV_OS, tfod_api_path, mode == MODE_VERBOSE):
         return True
     # if not installed, we continue
 
@@ -76,15 +79,40 @@ def install_tfod_api(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
 
     # check after installation if necessary (recommended)
     if verify in [VERIFY_AFTER, VERIFY_BOTH]:
-        return verify_tfod_api(ENV_OS, tfod_api_path)
+        return verify_tfod_api(ENV_OS, tfod_api_path, mode == MODE_VERBOSE)
 
     # otherwise we assume everything was installed
     return True
 
 
+def load_pretrained_model(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
+    pt_models_dir = config.get_reader().get_value(config.PRETRAINED_MODELS_DIRECTORY)
+    model_name = config.get_reader().get_value(config.PRETRAINED_MODEL_NAME)
+    model_url = config.get_reader().get_value(config.PRETRAINED_MODEL_DOWNLOAD_LINK)
+    # we check before if necessary and if model is already loaded
+    # we don't need to do anything
+    should_verify = (verify in [VERIFY_BEFORE, VERIFY_BOTH])
+    if should_verify and verify_pretrained_model(pt_models_dir, model_name, mode == MODE_VERBOSE):
+        return True
+    # if not installed, we continue
 
-def load_pretrained_model():
-    pass
+    install_script = \
+        PT_MODEL_LOAD_SCRIPT_WINDOWS if ENV_OS == OS_WINDOWS else PT_MODEL_LOAD_SCRIPT_LINUX
+
+    args = [install_script, pt_models_dir, model_name, model_url]
+    stdout = subprocess.DEVNULL if mode == MODE_SILENT else sys.stdout
+    process = subprocess.Popen(args, stdout=stdout)
+    _ = process.communicate()
+    exitcode = process.returncode
+    if exitcode != 0:
+        raise subprocess.SubprocessError
+
+    # check after loading if necessary (recommended)
+    if verify in [VERIFY_AFTER, VERIFY_BOTH]:
+        return verify_pretrained_model(pt_models_dir, model_name, mode == MODE_VERBOSE)
+
+    # otherwise we assume everything was loaded
+    return True
 
 
 def execute(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
@@ -95,7 +123,18 @@ def execute(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
     except (subprocess.SubprocessError, ValueError):
         if mode == MODE_VERBOSE:
             print('Installation of TFOD API failed')
-        return
+        return False
+
+    try:
+        success = load_pretrained_model(mode, verify)
+        if not success:
+            raise ValueError
+    except (subprocess.SubprocessError, ValueError):
+        if mode == MODE_VERBOSE:
+            print('Loading of pretrained model failed')
+        return False
+
+    return True
 
 
 if __name__ == '__main__':
