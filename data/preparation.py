@@ -1,4 +1,3 @@
-
 from studienprojekt_cv_rvv.common.config import \
     RAW_DATASET_DEFINITIONS_DIRNAME as DEFINITIONS_DIRNAME, \
     RAW_DATASET_IMAGES_DIRNAME as IMAGES_DIRNAME
@@ -10,7 +9,8 @@ from sklearn.model_selection import train_test_split
 from studienprojekt_cv_rvv.constants.paths import \
     PROCESSED_DATASET_TRAIN_DIRNAME as TRAIN_DIRNAME, \
     PROCESSED_DATASET_EVAL_DIRNAME as EVAL_DIRNAME
-from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT
+from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT, MODE_VERBOSE
+import traceback
 
 
 def get_dataset_name():
@@ -55,28 +55,51 @@ def get_eval_data_dir():
 #   mode (verbose, silent)
 #   train/eval split
 def generate_processed_dataset(split_ratio=0.2, mode=MODE_DEFAULT):
-    raw_dataset_reader = PerceptionDatasetReader(get_raw_dataset_dir())
-    label_dict_map = raw_dataset_reader.get_bounding_box_label_dict_map()
-    image_paths = raw_dataset_reader.get_image_paths()
-    images_train, images_eval = train_test_split(image_paths, test_size=split_ratio)
+    # noinspection PyBroadException
+    try:
+        if mode == MODE_VERBOSE:
+            print('Reading raw dataset')
 
-    train_writer = ProcessedDatasetWriter(get_train_data_dir())
-    train_writer.clean_processed_data()
-    train_writer.copy_to_destination(images_train)
-    images_train = train_writer.get_processed_files()
+        raw_dataset_reader = PerceptionDatasetReader(get_raw_dataset_dir())
+        label_dict_map = raw_dataset_reader.get_bounding_box_label_dict_map()
+        image_paths = raw_dataset_reader.get_image_paths(abs_path=True)
+        # print(image_paths)
+        images_train, images_eval = train_test_split(image_paths, test_size=split_ratio)
 
-    eval_writer = ProcessedDatasetWriter(get_eval_data_dir())
-    eval_writer.clean_processed_data()
-    eval_writer.copy_to_destination(images_eval)
-    images_eval = eval_writer.get_processed_files()
+        if mode == MODE_VERBOSE:
+            print('Successfully read raw dataset')
 
-    return label_dict_map, images_train, images_eval
+        if mode == MODE_VERBOSE:
+            print('Writing processed dataset')
+
+        train_writer = ProcessedDatasetWriter(get_train_data_dir())
+        train_writer.clean_processed_data()
+        train_writer.copy_to_destination(images_train)
+        images_train = train_writer.get_processed_files()
+
+        eval_writer = ProcessedDatasetWriter(get_eval_data_dir())
+        eval_writer.clean_processed_data()
+        eval_writer.copy_to_destination(images_eval)
+        images_eval = eval_writer.get_processed_files()
+
+        if mode == MODE_VERBOSE:
+            print('Successfully wrote processed dataset')
+
+        return label_dict_map, images_train, images_eval
+    except Exception:
+        print('Could not generate the processed dataset')
+        traceback.print_exc()
+        return None, None, None
 
 
-def execute():
-    #TODO: pass args here
-    label_dict_map, images_train, images_eval = generate_processed_dataset()
-    #TODO generate tf records here
+def generate_tf_records(mode=MODE_DEFAULT):
+    pass
+
+def execute(split_ratio=0.2, mode=MODE_DEFAULT):
+    label_dict_map, images_train, images_eval = \
+        generate_processed_dataset(split_ratio, mode)
+    if not (label_dict_map or images_train or images_eval):
+        return False
 
 
 if __name__ == '__main__':
