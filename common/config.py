@@ -2,23 +2,34 @@ import json
 from studienprojekt_cv_rvv.constants.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH, PROJECT_ROOT
 import os
 
-TFOD_API_INSTALL_DIRECTORY = 'tfod_api_install_directory'
-PRETRAINED_MODELS_DIRECTORY = 'pretrained_models_directory'
-TRAINED_MODELS_DIRECTORY = 'trained_models_directory'
 PRETRAINED_MODEL_NAME = 'pretrained_model_name'
 PRETRAINED_MODEL_DOWNLOAD_LINK = 'pretrained_model_download_link'
 TRAINED_MODEL_NAME = 'trained_model_name'
-DATASET_DEFINITIONS_PATH = 'dataset_definitions_path'
-DATASET_IMAGES_PATH = 'dataset_images_path'
+DATASET_NAME = 'dataset_name'
+RAW_DATASET_DEFINITIONS_DIRNAME = 'raw_dataset_definitions_dirname'
+RAW_DATASET_IMAGES_DIRNAME = 'raw_dataset_images_dirname'
+TFOD_API_INSTALL_DIRECTORY = 'tfod_api_install_directory'
+PRETRAINED_MODELS_DIRECTORY = 'pretrained_models_directory'
+TRAINED_MODELS_DIRECTORY = 'trained_models_directory'
+RAW_DATASETS_DIRECTORY = 'raw_datasets_directory'
+PROCESSED_DATASETS_DIRECTORY = 'processed_datasets_directory'
 CONFIG_KEYS = [
-    TFOD_API_INSTALL_DIRECTORY,
-    PRETRAINED_MODELS_DIRECTORY,
-    TRAINED_MODELS_DIRECTORY,
     PRETRAINED_MODEL_NAME,
     PRETRAINED_MODEL_DOWNLOAD_LINK,
     TRAINED_MODEL_NAME,
-    DATASET_DEFINITIONS_PATH,
-    DATASET_IMAGES_PATH
+    DATASET_NAME,
+    RAW_DATASET_DEFINITIONS_DIRNAME,
+    RAW_DATASET_IMAGES_DIRNAME,
+    TFOD_API_INSTALL_DIRECTORY,
+    PRETRAINED_MODELS_DIRECTORY,
+    TRAINED_MODELS_DIRECTORY,
+    RAW_DATASETS_DIRECTORY,
+    PROCESSED_DATASETS_DIRECTORY
+]
+MATCHER_KEYS = [
+    PRETRAINED_MODEL_NAME,
+    TRAINED_MODEL_NAME,
+    DATASET_NAME
 ]
 
 
@@ -28,16 +39,15 @@ class ConfigReader:
         if config_keys is None:
             config_keys = []
 
-        self.config_path = config_path
         self.config_dict = {}
         self.cache = {}
-        self.load_config()
+        self.load_config(config_path)
         self.config_keys = config_keys
         self.matcher_keys = matcher_keys or config_keys
 
-    def load_config(self):
+    def load_config(self, config_path):
         try:
-            with open(self.config_path, 'r') as json_file:
+            with open(config_path, 'r') as json_file:
                 self.config_dict = json.load(json_file)
             # we clear cache on every file load
             # because the contents might have changed
@@ -73,13 +83,11 @@ def get_reader():
     if not project_config_reader:
         if os.path.isfile(CONFIG_PATH):
             project_config_reader = ConfigReader(
-                CONFIG_PATH, CONFIG_KEYS,
-                [PRETRAINED_MODEL_NAME, TRAINED_MODEL_NAME]
+                CONFIG_PATH, CONFIG_KEYS, MATCHER_KEYS
             )
         elif os.path.isfile(DEFAULT_CONFIG_PATH):
             project_config_reader = ConfigReader(
-                DEFAULT_CONFIG_PATH, CONFIG_KEYS,
-                [PRETRAINED_MODEL_NAME, TRAINED_MODEL_NAME]
+                DEFAULT_CONFIG_PATH, CONFIG_KEYS, MATCHER_KEYS
             )
         else:
             project_config_reader = ConfigReader()

@@ -1,0 +1,2 @@
+Put your raw datasets from Unity-Perception in the folder ./datasets/raw/ TODO!!!! 
+They should be in the format, specified [here](https://github.com/Unity-Technologies/com.unity.perception/tree/main/com.unity.perception/Documentation~/Schema/mock_data/simrun)

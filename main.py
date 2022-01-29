@@ -3,7 +3,7 @@ import argparse
 from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
 from studienprojekt_cv_rvv.constants.cmd import *
 from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT
-from studienprojekt_cv_rvv.preparation import prepare_workspace
+from studienprojekt_cv_rvv.setup import workspace as workspace_setup
 
 
 # TODO: the jupyter notebook should load all necessary packages
@@ -36,7 +36,9 @@ class MainArgumentExtractor(CmdArgumentExtractor):
 
 
 def execute(mode=MODE_DEFAULT):
-    prepare_workspace.execute(mode=mode)
+    if not workspace_setup.execute(mode=mode):
+        # this get printed even if silent mode is active
+        print('Workspace could not be set up')
 
 
 if __name__ == '__main__':

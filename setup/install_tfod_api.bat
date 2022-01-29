@@ -80,6 +80,7 @@ pip install protobuf || goto :error
 pip install tensorflow-gpu --upgrade || goto :error
 pip install matplotlib || goto :error
 pip install pyyaml || goto :error
+pip install datasetinsights || goto :error
 goto :EOF
 
 :error

@@ -1,15 +1,15 @@
 from studienprojekt_cv_rvv.constants.general import OS_WINDOWS, ENV_OS
-from studienprojekt_cv_rvv.constants.paths import PREPARATION_PKG_PATH
+from studienprojekt_cv_rvv.constants.paths import SETUP_PKG_PATH
 from studienprojekt_cv_rvv.common import config
 import os
 import subprocess
 from studienprojekt_cv_rvv.common.config import TFOD_API_INSTALL_DIRECTORY
 
 VERIFY_TFOD_API_SCRIPT_WINDOWS = os.path.join(
-    PREPARATION_PKG_PATH, 'verify_scripts', 'verify_tfod_api_installation.bat'
+    SETUP_PKG_PATH, 'verify_scripts', 'verify_tfod_api_installation.bat'
 )
 VERIFY_TFOD_API_SCRIPT_LINUX = os.path.join(
-    PREPARATION_PKG_PATH, 'verify_scripts', 'verify_tfod_api_installation.sh'
+    SETUP_PKG_PATH, 'verify_scripts', 'verify_tfod_api_installation.sh'
 )
 
 
@@ -69,10 +69,16 @@ def verify_pretrained_model(pretrained_models_dir, model_name, print_status=True
     return success
 
 
-if __name__ == '__main__':
-    print('Verifying TFOD API installation')
-    verify_tfod_api(ENV_OS, config.get_reader().get_value(TFOD_API_INSTALL_DIRECTORY))
+def execute():
+    verify_tfod_api(
+        ENV_OS,
+        config.get_reader().get_value(TFOD_API_INSTALL_DIRECTORY)
+    )
     verify_pretrained_model(
         config.get_reader().get_value(config.PRETRAINED_MODELS_DIRECTORY),
         config.get_reader().get_value(config.PRETRAINED_MODEL_NAME)
     )
+
+
+if __name__ == '__main__':
+    execute()

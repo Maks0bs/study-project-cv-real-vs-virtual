@@ -8,16 +8,16 @@ from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
 from studienprojekt_cv_rvv.constants.cmd import *
 from studienprojekt_cv_rvv.constants.general import *
 from studienprojekt_cv_rvv.constants.paths import *
-from studienprojekt_cv_rvv.preparation.verify import verify_tfod_api, verify_pretrained_model
+from studienprojekt_cv_rvv.setup.verify import verify_tfod_api, verify_pretrained_model
 
-INSTALL_TFOD_API_SCRIPT_WINDOWS = os.path.join(PREPARATION_PKG_PATH, 'install_tfod_api.bat')
-INSTALL_TFOD_API_SCRIPT_LINUX = os.path.join(PREPARATION_PKG_PATH, 'install_tfod_api.sh')
+INSTALL_TFOD_API_SCRIPT_WINDOWS = os.path.join(SETUP_PKG_PATH, 'install_tfod_api.bat')
+INSTALL_TFOD_API_SCRIPT_LINUX = os.path.join(SETUP_PKG_PATH, 'install_tfod_api.sh')
 
-PT_MODEL_LOAD_SCRIPT_WINDOWS = os.path.join(PREPARATION_PKG_PATH, 'load_pretrained_model.bat')
-PT_MODEL_LOAD_SCRIPT_LINUX = os.path.join(PREPARATION_PKG_PATH, 'load_pretrained_model.sh')
+PT_MODEL_LOAD_SCRIPT_WINDOWS = os.path.join(SETUP_PKG_PATH, 'load_pretrained_model.bat')
+PT_MODEL_LOAD_SCRIPT_LINUX = os.path.join(SETUP_PKG_PATH, 'load_pretrained_model.sh')
 
 
-class PreparationArgumentExtractor(CmdArgumentExtractor):
+class SetupArgumentExtractor(CmdArgumentExtractor):
 
     @staticmethod
     def get_parser():
@@ -138,6 +138,6 @@ def execute(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
 
 
 if __name__ == '__main__':
-    args_extractor = PreparationArgumentExtractor()
+    args_extractor = SetupArgumentExtractor()
     kwargs = args_extractor.get_kwargs_for_execute()
     execute(**kwargs)
