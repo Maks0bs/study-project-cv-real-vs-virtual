@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from studienprojekt_cv_rvv.constants.paths import \
     PROCESSED_DATASET_TRAIN_DIRNAME as TRAIN_DIRNAME, \
     PROCESSED_DATASET_EVAL_DIRNAME as EVAL_DIRNAME
-from constants.general import MODE_DEFAULT
+from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT
 
 
 def get_dataset_name():
