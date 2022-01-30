@@ -86,7 +86,9 @@ def install_tfod_api(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
 
 
 def load_pretrained_model(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
-    pt_models_dir = config.get_reader().get_value(config.PRETRAINED_MODELS_DIRECTORY)
+    pt_models_dir = os.path.abspath(
+        config.get_reader().get_value(config.PRETRAINED_MODELS_DIRECTORY)
+    )
     model_name = config.get_reader().get_value(config.PRETRAINED_MODEL_NAME)
     model_url = config.get_reader().get_value(config.PRETRAINED_MODEL_DOWNLOAD_LINK)
     # we check before if necessary and if model is already loaded
