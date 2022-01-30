@@ -70,6 +70,8 @@ def install_tfod_api(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
         INSTALL_TFOD_API_SCRIPT_WINDOWS if ENV_OS == OS_WINDOWS else INSTALL_TFOD_API_SCRIPT_LINUX
 
     args = [install_script, tfod_api_path]
+    if ENV_OS == OS_LINUX:
+        args = ['bash'] + args
     stdout = subprocess.DEVNULL if mode == MODE_SILENT else sys.stdout
     process = subprocess.Popen(args, stdout=stdout)
     _ = process.communicate()
@@ -102,6 +104,8 @@ def load_pretrained_model(mode=MODE_DEFAULT, verify=VERIFY_DEFAULT):
         PT_MODEL_LOAD_SCRIPT_WINDOWS if ENV_OS == OS_WINDOWS else PT_MODEL_LOAD_SCRIPT_LINUX
 
     args = [install_script, pt_models_dir, model_name, model_url]
+    if ENV_OS == OS_LINUX:
+        args = ['bash'] + args
     stdout = subprocess.DEVNULL if mode == MODE_SILENT else sys.stdout
     process = subprocess.Popen(args, stdout=stdout)
     _ = process.communicate()

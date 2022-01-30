@@ -1,4 +1,4 @@
-from studienprojekt_cv_rvv.constants.general import OS_WINDOWS, ENV_OS
+from studienprojekt_cv_rvv.constants.general import OS_WINDOWS, ENV_OS, OS_LINUX
 from studienprojekt_cv_rvv.constants.paths import SETUP_PKG_PATH
 from studienprojekt_cv_rvv.common import config
 import os
@@ -17,6 +17,8 @@ def verify_tfod_api(system, tfod_api_path, print_status=True):
     script = \
         VERIFY_TFOD_API_SCRIPT_WINDOWS if system == OS_WINDOWS else VERIFY_TFOD_API_SCRIPT_LINUX
     args = [script, tfod_api_path]
+    if ENV_OS == OS_LINUX:
+        args = ['bash'] + args
     log_filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'verify_log.txt')
 
     with open(log_filename, 'w+') as logfile:

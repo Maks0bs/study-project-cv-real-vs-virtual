@@ -66,7 +66,7 @@ CMD_ARGS = {
     },
     CMD_ARG_SPLIT_RATIO: {
         CMD_ARG_OPT_FULL: '--split_ratio',
-        CMD_ARG_OPT_SHORT: '-rs',
+        CMD_ARG_OPT_SHORT: '-sr',
     },
     CMD_ARG_NUM_TRAIN_STEPS: {
         CMD_ARG_OPT_FULL: '--num_train_steps',
