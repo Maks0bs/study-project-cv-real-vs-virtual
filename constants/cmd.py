@@ -37,6 +37,24 @@ CMD_VERIFY_ARG_TO_VAL_MAP = {
 
 # +-~-~-~-+
 
+# +-~-~-~-+ split ration +-~-~-~-+
+
+CMD_ARG_SPLIT_RATIO = 'split_ratio'
+
+# +-~-~-~-+
+
+# +-~-~-~-+ number of training steps +-~-~-~-+
+
+CMD_ARG_NUM_TRAIN_STEPS = 'num_train_steps'
+
+# +-~-~-~-+
+
+# +-~-~-~-+ save training checkpoints every n steps +-~-~-~-+
+
+CMD_ARG_CHECKPOINT_EVERY_N = 'checkpoint_every_n'
+
+# +-~-~-~-+
+
 CMD_ARGS = {
     CMD_ARG_MODE: {
         CMD_ARG_OPT_FULL: '--mode',
@@ -45,5 +63,13 @@ CMD_ARGS = {
     CMD_ARG_VERIFY: {
         CMD_ARG_OPT_FULL: '--verify',
         CMD_ARG_OPT_SHORT: '-v',
+    },
+    CMD_ARG_NUM_TRAIN_STEPS: {
+        CMD_ARG_OPT_FULL: '--num_train_steps',
+        CMD_ARG_OPT_SHORT: '-nts',
+    },
+    CMD_ARG_CHECKPOINT_EVERY_N: {
+        CMD_ARG_OPT_FULL: '--checkpoint_every_n',
+        CMD_ARG_OPT_SHORT: '-cen',
     }
 }
