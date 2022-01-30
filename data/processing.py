@@ -155,3 +155,20 @@ class ProcessedDatasetWriter:
             return glob.glob(os.path.join(self.dest_dir, '*.png'))
         else:
             return []
+
+
+def write_label_map(raw_reader: PerceptionDatasetReader, output_file: str) -> bool:
+    labels = raw_reader.get_bounding_box_labels()
+    try:
+        with open(output_file, 'w+') as file:
+            for label in labels:
+                file.writelines([
+                    "item {\n",
+                    f"\tname:'{label[PerceptionDatasetReader.ENTRY_LABEL_NAME]}'\n",
+                    f"\tid:{label[PerceptionDatasetReader.ENTRY_LABEL_ID]}\n"
+                    "}\n"
+                ])
+    except (IOError, OSError, FileNotFoundError):
+        return False
+    else:
+        return True
