@@ -1,8 +1,5 @@
 # study-project-cv-real-vs-virtual
-Study project at RUB as a part of "Applied computer science" course of study. Made by Maksym Litvak and Marvin Bachert. Here we researched how well virtual picture data can be used to train an object detection network to work on real-world objects
-TODO: add info about how to run this in a local environment (but actually not necessary)
-prerequisites: python 3.8+, git
-For windows: curl and tar (they should be installed and  should be available on PATH) (normally included with newer windows versions)
+Study project at RUB as a part of "Applied computer science" course of study. Made by Maksym Litvak and Marvin Bachert. Here we researched how well virtual picture data can be used to train an object detection network to work on real-world objects.
 
-windows version tested on ... (windows version, python version, etc)
-it is not recommended to try running on windwos. Linux works 100% of time
+To get started, please download the `main.ipynb` file in the root of this repository. Then upload this notebook to [Google Colab](https://colab.research.google.com/)
+and follow the instructions in the notebook. Of course it is possible to run this notebook locally on your machine, but these scripts have not been tested thoroughly
