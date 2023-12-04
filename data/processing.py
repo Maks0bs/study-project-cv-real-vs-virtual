@@ -3,6 +3,7 @@ import glob
 import shutil
 import pandas as pd
 import cv2
+from sys import maxsize as INT_MAX
 
 from data.tf_records import TFRecordsGenerator
 
@@ -50,19 +51,25 @@ class OxfordRawDatasetObjectDetectionReader:
             im_bw = cv2.threshold(image_gray, 1, 255, cv2.THRESH_BINARY)[1]
             im_bw = 255 - im_bw
             
-            # TODO: perform conver hull over all bounding rects
-            # TODO: and make one big bounding rect that will represent our object
+            minX = minY = INT_MAX
+            maxX = maxY = -INT_MAX
             contours, _ = cv2.findContours(im_bw,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
             for countour in contours:
                 x, y, w, h = cv2.boundingRect(countour)
-                filename = row[DataframeColumns.FILENAME]
-                result_rows.append([filename, x, y, w, h])
+                x1, y1, x2, y2 = x, y, x + w, y + h
+                minX = min(minX, x1, x2)
+                maxX = max(maxX, x1, x2)
+                minY = min(minY, y1, y2)
+                maxY = max(maxY, y1, y2)
+                
+            filename = row[DataframeColumns.FILENAME]
+            result_rows.append([filename, minX, minY, maxX - minX, maxY - minY])
             
             
         return pd.DataFrame(result_rows, columns=[DataframeColumns.FILENAME, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H])
 
     def get_bounding_box_labels(self):
-        return self.class_df[[DataframeColumns.SPECIES_ID, DataframeColumns.SPECIES_LABEL]].drop_duplicates().reset_index()
+        return self.class_df[[DataframeColumns.CLASS_ID, DataframeColumns.CLASS_LABEL]].drop_duplicates().reset_index()
 
     def get_image_paths(self, abs_path=False, limit=None):
         images = list(self.class_df[DataframeColumns.FILENAME].apply(lambda f: f + '.' + self.images_ext))
@@ -72,14 +79,14 @@ class OxfordRawDatasetObjectDetectionReader:
 
     def get_objects_bounding_boxes(self, filename):
         df = self.objects_df[self.objects_df[DataframeColumns.FILENAME] == filename].merge(self.class_df, on=DataframeColumns.FILENAME)
-        df = df[[DataframeColumns.SPECIES_ID, DataframeColumns.SPECIES_LABEL, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H]]
+        df = df[[DataframeColumns.CLASS_ID, DataframeColumns.CLASS_LABEL, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H]]
         df = df.rename(columns={
-            DataframeColumns.SPECIES_ID: TFRecordsGenerator.IMAGE_OBJ_LABEL_ID,
+            DataframeColumns.CLASS_ID: TFRecordsGenerator.IMAGE_OBJ_LABEL_ID,
             DataframeColumns.OBJECT_X: TFRecordsGenerator.IMAGE_OBJ_X,
             DataframeColumns.OBJECT_Y: TFRecordsGenerator.IMAGE_OBJ_Y,
             DataframeColumns.OBJECT_W: TFRecordsGenerator.IMAGE_OBJ_WIDTH,
             DataframeColumns.OBJECT_H: TFRecordsGenerator.IMAGE_OBJ_HEIGHT,
-            DataframeColumns.SPECIES_LABEL: TFRecordsGenerator.IMAGE_OBJ_LABEL_NAME
+            DataframeColumns.CLASS_LABEL: TFRecordsGenerator.IMAGE_OBJ_LABEL_NAME
         })
         return df.to_dict(orient='records')
 
@@ -124,8 +131,8 @@ def write_label_map(raw_reader: OxfordRawDatasetObjectDetectionReader, output_fi
             for _, row in df.iterrows():
                 file.writelines([
                     "item {\n",
-                    f"\tname:'{row[DataframeColumns.SPECIES_LABEL]}'\n",
-                    f"\tid:{row[DataframeColumns.SPECIES_ID]}\n"
+                    f"\tname:'{row[DataframeColumns.CLASS_LABEL]}'\n",
+                    f"\tid:{row[DataframeColumns.CLASS_ID]}\n"
                     "}\n"
                 ])
     except (IOError, OSError, FileNotFoundError):
