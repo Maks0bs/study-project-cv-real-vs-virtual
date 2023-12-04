@@ -3,12 +3,13 @@ import argparse
 from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
 from studienprojekt_cv_rvv.constants.cmd import *
 from studienprojekt_cv_rvv.common.config import \
-    RAW_DATASET_DEFINITIONS_DIRNAME as DEFINITIONS_DIRNAME, \
-    RAW_DATASET_IMAGES_DIRNAME as IMAGES_DIRNAME
+    RAW_DATASET_ANNOTATIONS_DIRNAME as ANNOTATIONS_DIRNAME, \
+    RAW_DATASET_IMAGES_DIRNAME as IMAGES_DIRNAME, \
+    RAW_DATASET_ANNOTATIONS_LIST_PATH as LIST_PATH
 from studienprojekt_cv_rvv.common import config
 import os
 from studienprojekt_cv_rvv.data.processing import \
-    PerceptionDatasetReader, ProcessedDatasetWriter, write_label_map
+    OxfordRawDatasetClassDataReader, OxfordRawDatasetObjectDetectionReader, ProcessedDatasetWriter, write_label_map
 from sklearn.model_selection import train_test_split
 from studienprojekt_cv_rvv.constants.paths import \
     PROCESSED_DATASET_TRAIN_DIRNAME as TRAIN_DIRNAME, \
@@ -17,6 +18,7 @@ from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT, MODE_VERBOSE
 import traceback
 from typing import Tuple, List, Optional
 from studienprojekt_cv_rvv.data.tf_records import TFRecordsGenerator
+import pathlib
 
 TF_RECORD_TRAIN = 'train.record'
 TF_RECORD_EVAL = 'eval.record'
@@ -73,8 +75,13 @@ def get_raw_dataset_dir():
 
 def get_annotations_dir():
     dataset_dir = get_raw_dataset_dir()
-    definitions_dirname = config.get_reader().get_value(DEFINITIONS_DIRNAME)
+    definitions_dirname = config.get_reader().get_value(ANNOTATIONS_DIRNAME)
     return os.path.join(dataset_dir, definitions_dirname)
+
+def get_annotations_list_path():
+    dataset_dir = get_raw_dataset_dir()
+    path = config.get_reader().get_value(LIST_PATH)
+    return os.path.join(dataset_dir, path)
 
 
 def get_images_dir():
@@ -117,13 +124,15 @@ def get_label_map_path():
 # use typing here for better IDE recommendations
 def generate_processed_dataset(
         split_ratio: float = 0.2, mode: Optional[str] = MODE_DEFAULT
-) -> Tuple[Optional[PerceptionDatasetReader], Optional[List], Optional[List]]:
+) -> Tuple[Optional[OxfordRawDatasetObjectDetectionReader], Optional[List], Optional[List]]:
     # noinspection PyBroadException
     try:
         if mode == MODE_VERBOSE:
             print('Reading raw dataset')
 
-        raw_dataset_reader = PerceptionDatasetReader(get_raw_dataset_dir())
+        class_info_reader = OxfordRawDatasetClassDataReader(get_annotations_list_path())
+        class_df = class_info_reader.read_as_df()
+        raw_dataset_reader = OxfordRawDatasetObjectDetectionReader(get_images_dir(), get_annotations_dir(), class_df)
         image_paths = raw_dataset_reader.get_image_paths(abs_path=True)
         images_train, images_eval = train_test_split(image_paths, test_size=split_ratio)
 
@@ -159,7 +168,8 @@ def generate_tf_records(raw_reader, images, images_dir, output_file, mode=MODE_D
         print('generate tf records from', images_dir)
     for image in images:
         filename = os.path.basename(image)
-        image_objects = raw_reader.get_objects_bounding_boxes(filename)
+        filename_no_ext = pathlib.Path(filename).stem
+        image_objects = raw_reader.get_objects_bounding_boxes(filename_no_ext)
         image_data += [{
             TFRecordsGenerator.IMAGE_FILENAME: filename,
             TFRecordsGenerator.IMAGE_OBJECTS: image_objects

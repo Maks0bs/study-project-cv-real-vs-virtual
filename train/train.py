@@ -165,7 +165,7 @@ def run_training_script(
     train_steps_arg = f'--num_train_steps={num_train_steps}'
     checkpoint_every_arg = f'--checkpoint_every_n={checkpoint_every_n}'
     args = [
-        'python',
+        sys.executable,
         training_script,
         model_dir_arg,
         pipeline_config_path_arg,
@@ -229,5 +229,6 @@ def execute(num_train_steps=1000, checkpoint_every_n=1000, mode=MODE_DEFAULT):
 if __name__ == '__main__':
     args_extractor = TrainArgumentExtractor()
     kwargs = args_extractor.get_kwargs_for_execute()
+    # TODO run training (and other functions) on colab
     execute(**kwargs)
 

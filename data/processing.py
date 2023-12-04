@@ -1,133 +1,93 @@
-from datasetinsights.datasets.unity_perception import AnnotationDefinitions, Captures
-from datasetinsights.datasets.unity_perception.validation import DuplicateRecordError, NoRecordError
 import os
 import glob
 import shutil
+import pandas as pd
+import cv2
+
+from data.tf_records import TFRecordsGenerator
+
+class DataframeColumns:
+    FILENAME = 'filename'
+    CLASS_ID = 'class_id'
+    SPECIES_ID = 'species_id'
+    BREED_ID = 'breed_id'
+    CLASS_LABEL = 'class_label'
+    SPECIES_LABEL = 'species_label'
+    BREED_LABEL = 'breed_label'
+    OBJECT_X = 'x'
+    OBJECT_Y = 'y'
+    OBJECT_W = 'w'
+    OBJECT_H = 'h'
+class OxfordRawDatasetClassDataReader:
+    def __init__(self, list_path) -> None:
+        self.list_path = list_path
+        
+    def read_as_df(self):
+        data = pd.read_csv(self.list_path, sep=' ', header=None, comment='#', names=[DataframeColumns.FILENAME, DataframeColumns.CLASS_ID, DataframeColumns.SPECIES_ID, DataframeColumns.BREED_ID])
+        data[DataframeColumns.CLASS_LABEL] = data[DataframeColumns.FILENAME].str.split('_').apply(lambda x: x[:-1]).str.join('_')
+        data[DataframeColumns.BREED_LABEL] = data[DataframeColumns.CLASS_LABEL]
+        data[DataframeColumns.SPECIES_LABEL] = data[DataframeColumns.SPECIES_ID].apply(lambda x: 'cat' if x == 1 else 'dog')
+        return data
+        
+
+class OxfordRawDatasetObjectDetectionReader:
+    def __init__(self, images_dir, annotations_dir, class_df, images_ext = 'jpg', annotations_ext = 'png'):
+        self.annotations_dir = annotations_dir
+        self.images_dir = images_dir
+        self.class_df = class_df
+        self.annotations_ext = annotations_ext
+        self.images_ext = images_ext
+        self.objects_df = self.load_objects_df()
 
 
-class PerceptionDatasetReader:
-    ANNOTATIONS_DEFS_NAME_COL = 'name'
-    ANNOTATIONS_DEFS_ID_COL = 'id'
-    ANNOTATIONS_DEFS_ENTRIES_COL = 'spec'
-    ENTRY_LABEL_ID = 'label_id'
-    ENTRY_LABEL_NAME = 'label_name'
-    CAPTURES_FILENAME = 'filename'
-    CAPTURES_ID = 'id'
-    ANNOTATIONS_ANN_DEF_COL = 'annotation_definition'
-    ANNOTATIONS_VALUES_COL = 'values'
-    ANNOTATIONS_CAPTURE_ID_COL = 'capture.id'
-
-    def __init__(self, dataset_dir):
-        self.dataset_dir = dataset_dir
-        self.annotations_definitions = AnnotationDefinitions(dataset_dir).table
-        captures_data = Captures(dataset_dir)
-        self.captures = captures_data.captures
-        self.annotations = captures_data.annotations
-        self.bounding_box_labels = None
-        self.bounding_box_annotation_id = None
-        self.load_bounding_box_info()
-        self.filename_to_objects_map = {}
-        self.images_subdir = None
-        self.load_images_objects_bounding_boxes()
-
-    # loads bb labels and its annotation id
-    def load_bounding_box_info(self, annotations_definitions=None):
-        if not annotations_definitions:
-            annotations_definitions = self.annotations_definitions
-        name_column = annotations_definitions[
-            PerceptionDatasetReader.ANNOTATIONS_DEFS_NAME_COL
-        ]
-        has_bounding_str = name_column.str.contains('bounding')
-        has_box_str = name_column.str.contains('box')
-        is_bounding_box = has_bounding_str & has_box_str
-        selected_rows = annotations_definitions[is_bounding_box]
-
-        if selected_rows.shape[0] == 0:
-            raise NoRecordError(
-                'Annotations file contains no bounding box definitions'
-            )
-        if selected_rows.shape[0] > 1:
-            raise DuplicateRecordError(
-                'More than one bounding box annotation definition was found'
-            )
-
-        columns = [
-            PerceptionDatasetReader.ANNOTATIONS_DEFS_ENTRIES_COL,
-            PerceptionDatasetReader.ANNOTATIONS_DEFS_ID_COL
-        ]
-        filtered_row_values = selected_rows[columns].values
-        filtered_row_values = filtered_row_values.reshape(filtered_row_values.shape[1])
-        self.bounding_box_labels = filtered_row_values[0]
-        self.bounding_box_annotation_id = filtered_row_values[1]
-
-    def load_images_objects_bounding_boxes(
-            self,
-            annotations=None,
-            annotation_def=None,
-            captures=None
-    ):
-        if not annotations:
-            annotations = self.annotations
-        if not annotation_def:
-            annotation_def = self.bounding_box_annotation_id
-        if not captures:
-            captures = self.captures
-
-        annotation_ids = annotations[PerceptionDatasetReader.ANNOTATIONS_ANN_DEF_COL]
-        bounding_box_annotations = annotation_ids == annotation_def
-        columns = [
-            PerceptionDatasetReader.ANNOTATIONS_CAPTURE_ID_COL,
-            PerceptionDatasetReader.ANNOTATIONS_VALUES_COL
-        ]
-        selected_rows = annotations[bounding_box_annotations][columns]
-        joined_annotations = selected_rows.merge(
-            captures,
-            left_on=PerceptionDatasetReader.ANNOTATIONS_CAPTURE_ID_COL,
-            right_on=PerceptionDatasetReader.CAPTURES_ID
-        )
-        columns = [
-            PerceptionDatasetReader.CAPTURES_FILENAME,
-            PerceptionDatasetReader.ANNOTATIONS_VALUES_COL
-        ]
-        filtered_annotations = joined_annotations[columns]
-        self.filename_to_objects_map = {}
-        path = filtered_annotations.values[0][0]
-        self.images_subdir, _ = os.path.split(path)
-        for i, row in filtered_annotations.iterrows():
-            filename = os.path.basename(row[PerceptionDatasetReader.CAPTURES_FILENAME])
-            annotations = row[PerceptionDatasetReader.ANNOTATIONS_VALUES_COL]
-            self.filename_to_objects_map[filename] = annotations
+    def load_objects_df(self):
+        
+        result_rows = []
+        for _, row in self.class_df.iterrows():
+            img_path = os.path.join(self.annotations_dir, row[DataframeColumns.FILENAME] + '.' + self.annotations_ext)
+            # load image
+            image_gray = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            im_bw = cv2.threshold(image_gray, 1, 255, cv2.THRESH_BINARY)[1]
+            im_bw = 255 - im_bw
+            
+            # TODO: perform conver hull over all bounding rects
+            # TODO: and make one big bounding rect that will represent our object
+            contours, _ = cv2.findContours(im_bw,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+            for countour in contours:
+                x, y, w, h = cv2.boundingRect(countour)
+                filename = row[DataframeColumns.FILENAME]
+                result_rows.append([filename, x, y, w, h])
+            
+            
+        return pd.DataFrame(result_rows, columns=[DataframeColumns.FILENAME, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H])
 
     def get_bounding_box_labels(self):
-        return self.bounding_box_labels
-
-    def get_bounding_box_label_dict_map(self):
-        labels = self.bounding_box_labels
-        result = {}
-        for label in labels:
-            name = label[PerceptionDatasetReader.ENTRY_LABEL_NAME]
-            key = label[PerceptionDatasetReader.ENTRY_LABEL_ID]
-            result[key] = name
-        return result
+        return self.class_df[[DataframeColumns.SPECIES_ID, DataframeColumns.SPECIES_LABEL]].drop_duplicates().reset_index()
 
     def get_image_paths(self, abs_path=False, limit=None):
-        # arr[:None] returns arr
-        images = list(self.filename_to_objects_map.keys())
+        images = list(self.class_df[DataframeColumns.FILENAME].apply(lambda f: f + '.' + self.images_ext))
         if abs_path:
-            images = [
-                os.path.join(self.dataset_dir, self.images_subdir, i)
-                for i in images
-            ]
-
+            images = [os.path.join(self.images_dir, i) for i in images]
         return images[:limit]
 
     def get_objects_bounding_boxes(self, filename):
-        return self.filename_to_objects_map[filename]
+        df = self.objects_df[self.objects_df[DataframeColumns.FILENAME] == filename].merge(self.class_df, on=DataframeColumns.FILENAME)
+        df = df[[DataframeColumns.SPECIES_ID, DataframeColumns.SPECIES_LABEL, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H]]
+        df = df.rename(columns={
+            DataframeColumns.SPECIES_ID: TFRecordsGenerator.IMAGE_OBJ_LABEL_ID,
+            DataframeColumns.OBJECT_X: TFRecordsGenerator.IMAGE_OBJ_X,
+            DataframeColumns.OBJECT_Y: TFRecordsGenerator.IMAGE_OBJ_Y,
+            DataframeColumns.OBJECT_W: TFRecordsGenerator.IMAGE_OBJ_WIDTH,
+            DataframeColumns.OBJECT_H: TFRecordsGenerator.IMAGE_OBJ_HEIGHT,
+            DataframeColumns.SPECIES_LABEL: TFRecordsGenerator.IMAGE_OBJ_LABEL_NAME
+        })
+        return df.to_dict(orient='records')
 
 
 class ProcessedDatasetWriter:
-    def __init__(self, dest_dir, force_rewrite=True):
+    def __init__(self, dest_dir, images_ext='jpg', force_rewrite=True):
         self.dest_dir = dest_dir
+        self.images_ext = images_ext
         self.force_rewrite = force_rewrite
         if not os.path.isdir(self.dest_dir):
             os.makedirs(self.dest_dir)
@@ -152,20 +112,20 @@ class ProcessedDatasetWriter:
 
     def get_processed_files(self):
         if os.path.isdir(self.dest_dir):
-            return glob.glob(os.path.join(self.dest_dir, '*.png'))
+            return glob.glob(os.path.join(self.dest_dir, '*.' + self.images_ext))
         else:
             return []
 
 
-def write_label_map(raw_reader: PerceptionDatasetReader, output_file: str) -> bool:
-    labels = raw_reader.get_bounding_box_labels()
+def write_label_map(raw_reader: OxfordRawDatasetObjectDetectionReader, output_file: str) -> bool:
+    df = raw_reader.get_bounding_box_labels()
     try:
         with open(output_file, 'w+') as file:
-            for label in labels:
+            for _, row in df.iterrows():
                 file.writelines([
                     "item {\n",
-                    f"\tname:'{label[PerceptionDatasetReader.ENTRY_LABEL_NAME]}'\n",
-                    f"\tid:{label[PerceptionDatasetReader.ENTRY_LABEL_ID]}\n"
+                    f"\tname:'{row[DataframeColumns.SPECIES_LABEL]}'\n",
+                    f"\tid:{row[DataframeColumns.SPECIES_ID]}\n"
                     "}\n"
                 ])
     except (IOError, OSError, FileNotFoundError):
