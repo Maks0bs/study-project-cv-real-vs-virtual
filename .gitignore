@@ -1,13 +1,19 @@
-# ignore PyCharm/IntelliJ IDE files
 .idea/
-config.json
+.vscode/*
 
 __pycache__/
 
-studienprojekt_cv_rvv.egg-info/
+config.json
+
+data/datasets
+models/pretrained
+models/trained
+setup/verify_log.txt
 
 tfod_api/
+animal_detection.egg-info/
 
-models/
+*.ipynb
+!main.ipynb
 
 TODO.md

@@ -55,6 +55,12 @@ CMD_ARG_CHECKPOINT_EVERY_N = 'checkpoint_every_n'
 
 # +-~-~-~-+
 
+# +-~-~-~-+ model name (for training / eval / detection) +-~-~-~-+
+
+CMD_ARG_MODEL_NAME = 'model_name'
+
+# +-~-~-~-+
+
 CMD_ARGS = {
     CMD_ARG_MODE: {
         CMD_ARG_OPT_FULL: '--mode',
@@ -75,5 +81,9 @@ CMD_ARGS = {
     CMD_ARG_CHECKPOINT_EVERY_N: {
         CMD_ARG_OPT_FULL: '--checkpoint_every_n',
         CMD_ARG_OPT_SHORT: '-cen',
+    },
+    CMD_ARG_MODEL_NAME: {
+        CMD_ARG_OPT_FULL: '--model-name',
+        CMD_ARG_OPT_SHORT: '-mn',
     }
 }

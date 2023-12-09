@@ -1,9 +1,9 @@
-from studienprojekt_cv_rvv.constants.general import OS_WINDOWS, ENV_OS, OS_LINUX
-from studienprojekt_cv_rvv.constants.paths import SETUP_PKG_PATH
-from studienprojekt_cv_rvv.common import config
+from animal_detection.constants.general import OS_WINDOWS, ENV_OS, OS_LINUX
+from animal_detection.constants.paths import SETUP_PKG_PATH
+from animal_detection.common import config
 import os
 import subprocess
-from studienprojekt_cv_rvv.common.config import TFOD_API_INSTALL_DIRECTORY
+from animal_detection.common.config import TFOD_API_INSTALL_DIRECTORY
 
 VERIFY_TFOD_API_SCRIPT_WINDOWS = os.path.join(
     SETUP_PKG_PATH, 'verify_scripts', 'verify_tfod_api_installation.bat'

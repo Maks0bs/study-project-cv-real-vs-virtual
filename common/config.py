@@ -1,5 +1,5 @@
 import json
-from studienprojekt_cv_rvv.constants.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH, PROJECT_ROOT
+from animal_detection.constants.paths import CONFIG_PATH, DEFAULT_CONFIG_PATH, PROJECT_ROOT
 import os
 
 PRETRAINED_MODEL_NAME = 'pretrained_model_name'

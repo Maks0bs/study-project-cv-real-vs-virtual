@@ -229,6 +229,5 @@ def execute(num_train_steps=1000, checkpoint_every_n=1000, mode=MODE_DEFAULT):
 if __name__ == '__main__':
     args_extractor = TrainArgumentExtractor()
     kwargs = args_extractor.get_kwargs_for_execute()
-    # TODO run training (and other functions) on colab
     execute(**kwargs)
 

@@ -3,12 +3,12 @@ import subprocess
 import sys
 import os
 
-from studienprojekt_cv_rvv.common import config
-from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
-from studienprojekt_cv_rvv.constants.cmd import *
-from studienprojekt_cv_rvv.constants.general import *
-from studienprojekt_cv_rvv.constants.paths import *
-from studienprojekt_cv_rvv.setup.verify import verify_tfod_api, verify_pretrained_model
+from animal_detection.common import config
+from animal_detection.common.cmd import CmdArgumentExtractor
+from animal_detection.constants.cmd import *
+from animal_detection.constants.general import *
+from animal_detection.constants.paths import *
+from animal_detection.setup.verify import verify_tfod_api, verify_pretrained_model
 
 INSTALL_TFOD_API_SCRIPT_WINDOWS = os.path.join(SETUP_PKG_PATH, 'install_tfod_api.bat')
 INSTALL_TFOD_API_SCRIPT_LINUX = os.path.join(SETUP_PKG_PATH, 'install_tfod_api.sh')
