@@ -1,23 +1,23 @@
 import argparse
 
-from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
-from studienprojekt_cv_rvv.constants.cmd import *
-from studienprojekt_cv_rvv.common.config import \
+from animal_detection.common.cmd import CmdArgumentExtractor
+from animal_detection.constants.cmd import *
+from animal_detection.common.config import \
     RAW_DATASET_ANNOTATIONS_DIRNAME as ANNOTATIONS_DIRNAME, \
     RAW_DATASET_IMAGES_DIRNAME as IMAGES_DIRNAME, \
     RAW_DATASET_ANNOTATIONS_LIST_PATH as LIST_PATH
-from studienprojekt_cv_rvv.common import config
+from animal_detection.common import config
 import os
-from studienprojekt_cv_rvv.data.processing import \
+from animal_detection.data.processing import \
     OxfordRawDatasetClassDataReader, OxfordRawDatasetObjectDetectionReader, ProcessedDatasetWriter, write_label_map
 from sklearn.model_selection import train_test_split
-from studienprojekt_cv_rvv.constants.paths import \
+from animal_detection.constants.paths import \
     PROCESSED_DATASET_TRAIN_DIRNAME as TRAIN_DIRNAME, \
     PROCESSED_DATASET_EVAL_DIRNAME as EVAL_DIRNAME
-from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT, MODE_VERBOSE
+from animal_detection.constants.general import MODE_DEFAULT, MODE_VERBOSE
 import traceback
 from typing import Tuple, List, Optional
-from studienprojekt_cv_rvv.data.tf_records import TFRecordsGenerator
+from animal_detection.data.tf_records import TFRecordsGenerator
 import pathlib
 
 TF_RECORD_TRAIN = 'train.record'

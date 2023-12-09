@@ -4,12 +4,12 @@ import shutil
 import subprocess
 import sys
 
-from studienprojekt_cv_rvv.common.config import TFOD_API_INSTALL_DIRECTORY
-from studienprojekt_cv_rvv.common.cmd import CmdArgumentExtractor
-from studienprojekt_cv_rvv.constants.general import MODE_DEFAULT, MODE_VERBOSE, MODE_SILENT
-from studienprojekt_cv_rvv.constants.cmd import *
-from studienprojekt_cv_rvv.common import config
-from studienprojekt_cv_rvv.data.preparation import \
+from animal_detection.common.config import TFOD_API_INSTALL_DIRECTORY
+from animal_detection.common.cmd import CmdArgumentExtractor
+from animal_detection.constants.general import MODE_DEFAULT, MODE_VERBOSE, MODE_SILENT
+from animal_detection.constants.cmd import *
+from animal_detection.common import config
+from animal_detection.data.preparation import \
     get_label_map_path, get_eval_record_path, get_train_record_path
 import tensorflow as tf
 from object_detection.protos import pipeline_pb2

@@ -5,7 +5,7 @@ import pandas as pd
 import cv2
 from sys import maxsize as INT_MAX
 
-from studienprojekt_cv_rvv.data.tf_records import TFRecordsGenerator
+from animal_detection.data.tf_records import TFRecordsGenerator
 
 class DataframeColumns:
     FILENAME = 'filename'
