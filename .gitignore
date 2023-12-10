@@ -10,6 +10,9 @@ models/pretrained
 models/trained
 setup/verify_log.txt
 
+detect/detection_result.png
+detection_result.png
+
 tfod_api/
 animal_detection.egg-info/
 

@@ -61,6 +61,18 @@ CMD_ARG_MODEL_NAME = 'model_name'
 
 # +-~-~-~-+
 
+# +-~-~-~-+ +-~-~-~-+
+
+CMD_ARG_IMG_PATH = 'image_path'
+
+# +-~-~-~-+
+
+# +-~-~-~-+ +-~-~-~-+
+
+CMD_ARG_CKPT = 'ckpt'
+
+# +-~-~-~-+
+
 CMD_ARGS = {
     CMD_ARG_MODE: {
         CMD_ARG_OPT_FULL: '--mode',
@@ -85,5 +97,13 @@ CMD_ARGS = {
     CMD_ARG_MODEL_NAME: {
         CMD_ARG_OPT_FULL: '--model-name',
         CMD_ARG_OPT_SHORT: '-mn',
-    }
+    },
+    CMD_ARG_IMG_PATH: {
+        CMD_ARG_OPT_FULL: '--image-path',
+        CMD_ARG_OPT_SHORT: '-ip',
+    },
+    CMD_ARG_CKPT: {
+        CMD_ARG_OPT_FULL: '--ckpt',
+        CMD_ARG_OPT_SHORT: '-ck',
+    },
 }
