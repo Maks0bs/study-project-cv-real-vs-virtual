@@ -113,7 +113,7 @@ def execute(img_path, ckpt=None, show=False):
     # detection_classes should be ints.
     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
 
-    label_id_offset = 1
+    label_id_offset = 0
     image_np_with_detections = image_np.copy()
 
     viz_utils.visualize_boxes_and_labels_on_image_array(
@@ -125,18 +125,17 @@ def execute(img_path, ckpt=None, show=False):
                 use_normalized_coordinates=True,
                 max_boxes_to_draw=10,
                 min_score_thresh=.2,
-                agnostic_mode=False)
+                agnostic_mode=False, )
 
-    result_img = cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB)
     
     if (show):
         plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
         plt.savefig('detection_result.png')
         plt.show()
+        
+    print(detections)
     
-    return result_img
-    
-
+    return detections, image_np_with_detections
 
 if __name__ == '__main__':
     args_extractor = DetectArgumentExtractor()
