@@ -4,6 +4,7 @@ import shutil
 import pandas as pd
 import cv2
 from sys import maxsize as INT_MAX
+import tensorflow as tf
 
 from animal_detection.data.tf_records import TFRecordsGenerator
 
@@ -92,6 +93,22 @@ class OxfordRawDatasetObjectDetectionReader:
 
 
 class ProcessedDatasetWriter:
+    
+    BAD_FILES = [
+        'Egyptian_Mau_14.jpg',
+        'Egyptian_Mau_139.jpg',
+        'Egyptian_Mau_145.jpg',
+        'Egyptian_Mau_156.jpg',
+        'Egyptian_Mau_167.jpg',
+        'Egyptian_Mau_177.jpg',
+        'Egyptian_Mau_186.jpg',
+        'Egyptian_Mau_191.jpg',
+        'Abyssinian_5.jpg',
+        'Abyssinian_34.jpg',
+        'chihuahua_121.jpg',
+        'beagle_116.jpg'
+   ]
+    
     def __init__(self, dest_dir, images_ext='jpg', force_rewrite=True):
         self.dest_dir = dest_dir
         self.images_ext = images_ext
@@ -107,15 +124,46 @@ class ProcessedDatasetWriter:
     def copy_to_destination(self, images_paths):
         for f in images_paths:
             basename = os.path.basename(f)
+            dirpath = os.path.dirname(f)
             copied_file_path = os.path.abspath(os.path.join(self.dest_dir, basename))
-            if os.path.isfile(copied_file_path):
-                if self.force_rewrite:
-                    os.remove(copied_file_path)
-                    shutil.copy(f, self.dest_dir)
+            if self.is_good_image(dirpath, basename):
+                if (os.path.isfile(copied_file_path)):
+                    if self.force_rewrite:
+                        os.remove(copied_file_path)
+                        shutil.copy(f, self.dest_dir)
+                    else:
+                        shutil.copy(f, os.path.join(self.dest_dir, 'copy_' + basename))
                 else:
-                    shutil.copy(f, os.path.join(self.dest_dir, 'copy_' + basename))
-            else:
-                shutil.copy(f, self.dest_dir)
+                    shutil.copy(f, self.dest_dir)
+                
+    def is_good_image(self, path_images, filename_src):
+        _, extension = os.path.splitext(filename_src)
+        if (extension.lower() != '.jpg'): 
+            print('bad image | not a jpg extension image:', filename_src)
+            return False
+        
+        pathname_jpg = os.path.join(path_images, filename_src)
+        with tf.io.gfile.GFile(pathname_jpg, 'rb') as fid:
+            encoded_jpg = fid.read(4)
+            
+        # png
+        if(encoded_jpg[0] == 0x89 and encoded_jpg[1] == 0x50 and encoded_jpg[2] == 0x4e and encoded_jpg[3] == 0x47):
+            # copy jpg->png then encode png->jpg
+            print('bad image | png:{}'.format(filename_src))
+            return False 
+        # gif
+        elif(encoded_jpg[0] == 0x47 and encoded_jpg[1] == 0x49 and encoded_jpg[2] == 0x46):
+            # copy jpg->gif then encode gif->jpg
+            print('bad image | gif:{}'.format(filename_src))
+            return False
+        elif(filename_src in self.BAD_FILES):
+            # copy jpg->jpeg then encode jpeg->jpg
+            print('bad image | jpeg bad:{}'.format(filename_src))
+            return False 
+        elif(encoded_jpg[0] != 0xff or encoded_jpg[1] != 0xd8 or encoded_jpg[2] != 0xff):
+            print('bad image | not jpg:{}'.format(filename_src))
+            return False
+        return True
 
     def get_processed_files(self):
         if os.path.isdir(self.dest_dir):
