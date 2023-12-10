@@ -64,22 +64,25 @@ class OxfordRawDatasetObjectDetectionReader:
                 maxY = max(maxY, y1, y2)
                 
             filename = row[DataframeColumns.FILENAME]
-            result_rows.append([filename, minX, minY, maxX - minX, maxY - minY])
+            if (len(contours) > 0):
+                result_rows.append([filename, minX, minY, maxX - minX, maxY - minY, row[DataframeColumns.CLASS_ID], row[DataframeColumns.CLASS_LABEL]])
+            else:
+                print('no bounding boxes could be create for image:', filename)
             
             
-        return pd.DataFrame(result_rows, columns=[DataframeColumns.FILENAME, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H])
+        return pd.DataFrame(result_rows, columns=[DataframeColumns.FILENAME, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H, DataframeColumns.CLASS_ID, DataframeColumns.CLASS_LABEL])
 
     def get_bounding_box_labels(self):
-        return self.class_df[[DataframeColumns.CLASS_ID, DataframeColumns.CLASS_LABEL]].drop_duplicates().reset_index()
+        return self.objects_df[[DataframeColumns.CLASS_ID, DataframeColumns.CLASS_LABEL]].drop_duplicates().reset_index()
 
     def get_image_paths(self, abs_path=False, limit=None):
-        images = list(self.class_df[DataframeColumns.FILENAME].apply(lambda f: f + '.' + self.images_ext))
+        images = list(self.objects_df[DataframeColumns.FILENAME].drop_duplicates().apply(lambda f: f + '.' + self.images_ext))
         if abs_path:
             images = [os.path.join(self.images_dir, i) for i in images]
         return images[:limit]
 
     def get_objects_bounding_boxes(self, filename):
-        df = self.objects_df[self.objects_df[DataframeColumns.FILENAME] == filename].merge(self.class_df, on=DataframeColumns.FILENAME)
+        df = self.objects_df[self.objects_df[DataframeColumns.FILENAME] == filename]
         df = df[[DataframeColumns.CLASS_ID, DataframeColumns.CLASS_LABEL, DataframeColumns.OBJECT_X, DataframeColumns.OBJECT_Y, DataframeColumns.OBJECT_W, DataframeColumns.OBJECT_H]]
         df = df.rename(columns={
             DataframeColumns.CLASS_ID: TFRecordsGenerator.IMAGE_OBJ_LABEL_ID,
