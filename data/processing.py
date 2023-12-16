@@ -26,9 +26,10 @@ class OxfordRawDatasetClassDataReader:
         
     def read_as_df(self):
         data = pd.read_csv(self.list_path, sep=' ', header=None, comment='#', names=[DataframeColumns.FILENAME, DataframeColumns.CLASS_ID, DataframeColumns.SPECIES_ID, DataframeColumns.BREED_ID])
-        data[DataframeColumns.CLASS_LABEL] = data[DataframeColumns.FILENAME].str.split('_').apply(lambda x: x[:-1]).str.join('_')
-        data[DataframeColumns.BREED_LABEL] = data[DataframeColumns.CLASS_LABEL]
         data[DataframeColumns.SPECIES_LABEL] = data[DataframeColumns.SPECIES_ID].apply(lambda x: 'cat' if x == 1 else 'dog')
+        data[DataframeColumns.CLASS_LABEL] = data[DataframeColumns.FILENAME].str.split('_').apply(lambda x: x[:-1]).str.join(' ').str.capitalize()
+        data[DataframeColumns.CLASS_LABEL] = data[DataframeColumns.SPECIES_LABEL].apply(lambda x: x + ', ').str.capitalize() + data[DataframeColumns.CLASS_LABEL]
+        data[DataframeColumns.BREED_LABEL] = data[DataframeColumns.CLASS_LABEL]
         return data
         
 

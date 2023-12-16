@@ -50,6 +50,28 @@ def run_detection(request):
         
         return JsonResponse({"dir": PERSISTENCE_PATH}, status=200)
     
+# todo for kursach:
 
+# change github repo link!!
+
+# /detection/run
+# 	run detection on specified image that we send
+
+# /detection/run-again
+
+# /detection/history
+# 	get overview list of all detections that were executed
+
+# /detection/detail/:id
+
+# /detection/delete/:id
+
+# detections are persisted in detections/ folder
+# each detection looks like this
+
+# 15 (folder)
+# 	result_img.jpg
+# 	detection_data.npy
+# 	original_img.jpg
 
 

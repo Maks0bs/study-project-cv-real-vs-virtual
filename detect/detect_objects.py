@@ -5,6 +5,7 @@ from object_detection.utils import visualization_utils as viz_utils
 from object_detection.builders import model_builder
 from object_detection.utils import config_util
 from animal_detection.data.preparation import get_label_map_path
+from animal_detection.common.helpers import detection_scores_to_percentages
 
 from animal_detection.models.train import PipelineConfigLoader
 tf.config.run_functions_eagerly(True)
@@ -13,8 +14,6 @@ tf.config.run_functions_eagerly(True)
 import argparse
 import os
 import glob
-import subprocess
-import sys
 
 from animal_detection.common.config import TFOD_API_INSTALL_DIRECTORY
 from animal_detection.common.cmd import CmdArgumentExtractor
@@ -54,6 +53,20 @@ class DetectArgumentExtractor(CmdArgumentExtractor):
             short_arg_mode, full_arg_mode,
             nargs='?', type=str
         )
+        
+        full_arg_mode = CMD_ARGS[CMD_ARG_DETECTION_BOXES_COUNT][CMD_ARG_OPT_FULL]
+        short_arg_mode = CMD_ARGS[CMD_ARG_DETECTION_BOXES_COUNT][CMD_ARG_OPT_SHORT]
+        parser.add_argument(
+            short_arg_mode, full_arg_mode,
+            nargs='?', type=int
+        )
+        
+        full_arg_mode = CMD_ARGS[CMD_ARG_SCORE_THRESHOLD][CMD_ARG_OPT_FULL]
+        short_arg_mode = CMD_ARGS[CMD_ARG_SCORE_THRESHOLD][CMD_ARG_OPT_SHORT]
+        parser.add_argument(
+            short_arg_mode, full_arg_mode,
+            nargs='?', type=float, default=0.2
+        )
 
         return parser
 
@@ -66,10 +79,24 @@ class DetectArgumentExtractor(CmdArgumentExtractor):
         ckpt = self.get_extracted_arg(CMD_ARG_CKPT)
         if ckpt:
             args['ckpt'] = ckpt
+        
+        boxes_cnt = self.get_extracted_arg(CMD_ARG_DETECTION_BOXES_COUNT)
+        if boxes_cnt:
+            args['boxes_count'] = boxes_cnt
+        
+        score_threshold = self.get_extracted_arg(CMD_ARG_SCORE_THRESHOLD)
+        if score_threshold:
+            args['score_threshold'] = score_threshold
 
         return args
+    
+def execute_show(img_path, ckpt=None, boxes_count=1, score_threshold=0.2):
+    _, image_np_with_detections = execute(img_path, ckpt, boxes_count, score_threshold)
+    plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
+    plt.savefig('detection_result.png')
+    plt.show()
 
-def execute(img_path, ckpt=None, show=False):
+def execute(img_path, ckpt=None, boxes_count=1, score_threshold=0.2):
     config_loader = PipelineConfigLoader(
         config.get_reader().get_value(config.PRETRAINED_MODEL_NAME),
         config.get_reader().get_value(config.TRAINED_MODEL_NAME)
@@ -112,6 +139,7 @@ def execute(img_path, ckpt=None, show=False):
 
     # detection_classes should be ints.
     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+    detections['detection_scores'] = detection_scores_to_percentages(detections['detection_scores'])
 
     label_id_offset = 0
     image_np_with_detections = image_np.copy()
@@ -123,22 +151,14 @@ def execute(img_path, ckpt=None, show=False):
                 detections['detection_scores'],
                 category_index,
                 use_normalized_coordinates=True,
-                max_boxes_to_draw=10,
-                min_score_thresh=.2,
+                max_boxes_to_draw=boxes_count,
+                min_score_thresh=score_threshold,
                 agnostic_mode=False, )
-
-    
-    if (show):
-        plt.imshow(cv2.cvtColor(image_np_with_detections, cv2.COLOR_BGR2RGB))
-        plt.savefig('detection_result.png')
-        plt.show()
-        
-    print(detections)
     
     return detections, image_np_with_detections
 
 if __name__ == '__main__':
     args_extractor = DetectArgumentExtractor()
     kwargs = args_extractor.get_kwargs_for_execute()
-    execute(**kwargs, show=True)
+    execute_show(**kwargs)
 

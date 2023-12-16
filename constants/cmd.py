@@ -73,6 +73,18 @@ CMD_ARG_CKPT = 'ckpt'
 
 # +-~-~-~-+
 
+# +-~-~-~-+ +-~-~-~-+
+
+CMD_ARG_DETECTION_BOXES_COUNT = 'boxes_cnt'
+
+# +-~-~-~-+
+
+# +-~-~-~-+ +-~-~-~-+
+
+CMD_ARG_SCORE_THRESHOLD = 'score_threshold'
+
+# +-~-~-~-+
+
 CMD_ARGS = {
     CMD_ARG_MODE: {
         CMD_ARG_OPT_FULL: '--mode',
@@ -105,5 +117,13 @@ CMD_ARGS = {
     CMD_ARG_CKPT: {
         CMD_ARG_OPT_FULL: '--ckpt',
         CMD_ARG_OPT_SHORT: '-ck',
+    },
+    CMD_ARG_DETECTION_BOXES_COUNT: {
+        CMD_ARG_OPT_FULL: '--boxes-count',
+        CMD_ARG_OPT_SHORT: '-bc',
+    },
+    CMD_ARG_SCORE_THRESHOLD: {
+        CMD_ARG_OPT_FULL: '--score-threshold',
+        CMD_ARG_OPT_SHORT: '-st',
     },
 }
