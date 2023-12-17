@@ -96,7 +96,7 @@ def execute_show(img_path, ckpt=None, boxes_count=1, score_threshold=0.2):
     plt.savefig('detection_result.png')
     plt.show()
 
-def execute(img_path, ckpt=None, boxes_count=1, score_threshold=0.2):
+def execute(img_path, boxes_count=1, score_threshold=0.2, ckpt=None):
     config_loader = PipelineConfigLoader(
         config.get_reader().get_value(config.PRETRAINED_MODEL_NAME),
         config.get_reader().get_value(config.TRAINED_MODEL_NAME)
@@ -138,16 +138,16 @@ def execute(img_path, ckpt=None, boxes_count=1, score_threshold=0.2):
     detections['num_detections'] = num_detections
 
     # detection_classes should be ints.
-    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+    label_id_offset = 1
+    detections['detection_classes'] = detections['detection_classes'].astype(np.int64) + label_id_offset
     detections['detection_scores'] = detection_scores_to_percentages(detections['detection_scores'])
 
-    label_id_offset = 0
     image_np_with_detections = image_np.copy()
 
     viz_utils.visualize_boxes_and_labels_on_image_array(
                 image_np_with_detections,
                 detections['detection_boxes'],
-                detections['detection_classes']+label_id_offset,
+                detections['detection_classes'],
                 detections['detection_scores'],
                 category_index,
                 use_normalized_coordinates=True,

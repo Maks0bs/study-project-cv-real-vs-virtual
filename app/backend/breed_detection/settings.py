@@ -16,9 +16,14 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 PERSISTENCE_PATH = os.path.join(BASE_DIR.absolute().as_posix(), 'persistance')
+DATA_DIR_PATH = os.path.join(BASE_DIR.absolute().as_posix(), 'data')
+CACHE_PATH = os.path.join(BASE_DIR.absolute().as_posix(), 'cache')
 
 if not os.path.exists(PERSISTENCE_PATH):
     os.makedirs(PERSISTENCE_PATH)
+    
+if not os.path.exists(CACHE_PATH):
+    os.makedirs(CACHE_PATH)
 
 
 # Quick-start development settings - unsuitable for production

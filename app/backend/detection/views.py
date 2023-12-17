@@ -1,77 +1,160 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
+from django.core.files import File
+from io import BytesIO
 import os
-import glob
-import numpy as np
-import cv2
+import shutil
+import traceback
+import json
 
-from animal_detection.app.backend.breed_detection.settings import PERSISTENCE_PATH
+from animal_detection.app.backend.detection import cache
+from animal_detection.app.backend.detection.constants import BOXES_COUNT_DEFAULT, SCORE_THRESHOLD_DEFAULT
+from animal_detection.app.backend.detection.persistance.write import write_detection, delete_detection
+from animal_detection.app.backend.detection.persistance.read import read_detection, get_all_detection_ids
+from animal_detection.app.backend.detection.processing.preprocessing import get_new_detection_id, get_detection_dir_path, extract_params_from_request
 from animal_detection.detect.detect_objects import execute as execute_detection
 
-DETECTIONS_PATH = os.path.join(PERSISTENCE_PATH, 'detections')
-
-def get_new_detection_id():
-    if not os.path.exists(DETECTIONS_PATH):
-        os.makedirs(DETECTIONS_PATH)
-    
-    existing_detections = glob.glob(os.path.join(DETECTIONS_PATH, '*'))
-    detections_ids = sorted([int(os.path.basename(d)) for d in existing_detections])
-    if (len(detections_ids) > 0):
-        detection_id = detections_ids[-1] + 1
-    else:
-        detection_id = 1
-    return detection_id
 
 @csrf_exempt
 def run_detection(request):
     if request.method == 'POST':  
-        # TODO parametrize (in frontend and backend) the threshold and the amount of boxes to draw  
-        detection_id = get_new_detection_id()
-        detection_path = os.path.join(DETECTIONS_PATH, str(detection_id))
-        os.makedirs(detection_path)
-        
         if not(request.FILES) or not('image' in request.FILES):
-            return JsonResponse({"error": 'no image provided'}, status=400)
+            return JsonResponse({"error": 'No image provided'}, status=400)
         
         file = request.FILES['image']
-        file_ext = os.path.splitext(file.name)[1]
-        original_file_path = os.path.join(detection_path, 'original_image' + file_ext)
-        detections_data_path = os.path.join(detection_path, 'detections_data.npy')
-        result_image_path = os.path.join(detection_path, 'result_image' + file_ext)
-        
-        with open(original_file_path, "wb+") as destination:
-            for chunk in file.chunks():
-                destination.write(chunk)
+        try:
+            detection_id = get_new_detection_id()
+        except IndexError:
+            return JsonResponse({"error": 'The maximum amount of detections has been reached. Please remove some of the older detections to run new detections'}, status=500)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'New detections cannot be processed'}, status=500)
                 
-        detections, result_img = execute_detection(original_file_path)
-        np.save(detections_data_path, detections)
-        cv2.imwrite(result_image_path, result_img)
+        try:
+            boxes_count, score_threshold = extract_params_from_request(request.POST)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'The provided parameters for detection (score threshold or boxes count) have invalid values'}, status=400)
+            
+        try:
+            cache.write_bytes(file.name, file)
+            detections, result_img = execute_detection(cache.get_full_path(file.name), boxes_count, score_threshold)
+            write_detection(file, detections, result_img, detection_id, boxes_count, score_threshold)
+            cache.remove_file(file.name)
+            
+            return JsonResponse({'id': detection_id}, status=200)
+        except:
+            detection_path = get_detection_dir_path(detection_id)
+            if (os.path.isdir(detection_path)):
+                shutil.rmtree(detection_path)
+            traceback.print_exc()
+            return JsonResponse({"error": 'Error occured during execution of object detection for given image'}, status=500)
+
+
+@csrf_exempt
+def rerun_detection(request, id):
+    if request.method == 'PUT':  
         
-        return JsonResponse({"dir": PERSISTENCE_PATH}, status=200)
+        if not (id in get_all_detection_ids()):
+            return JsonResponse({"error": 'No detection with given ID could be found'}, status=404)
+        
+        try:
+            body = json.loads(request.body)
+            boxes_count, score_threshold = extract_params_from_request(body)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'The provided parameters for detection (score threshold or boxes count) have invalid values'}, status=400)
+         
+        try:
+            detection = read_detection(id, True)
+            filename = detection.metadata['filename']
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'Could not read detection with given ID'}, status=500)
+        
+        try:
+            with open(detection.original_file_path, 'rb') as original_image_file:
+                bytes_arr = original_image_file.read()
+                
+                reader1 = BytesIO(bytes_arr)
+                reader2 = BytesIO(bytes_arr)
+                file1 = File(reader1, 'copy_' +  filename)
+                file2 = File(reader2, filename)
+                cache.write_bytes(file1.name, file1)
+                cache.write_bytes(file2.name, file2)
+                
+                detections, result_img = execute_detection(cache.get_full_path(file1.name), boxes_count, score_threshold)
+                write_detection(file2, detections, result_img, id, boxes_count, score_threshold)
+                cache.remove_file(file1.name)
+                cache.remove_file(file2.name)
+            
+            return JsonResponse({'success': True}, status=200)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'Error occured during execution of object detection for given image'}, status=500)
+        
+        
+@csrf_exempt
+def detection_detail(request, id):
+    if not (id in get_all_detection_ids()):
+            return JsonResponse({"error": 'No detection with given ID could be found'}, status=404)
+        
+    if request.method == 'GET':
+        try:
+            detection = read_detection(id)
+            return JsonResponse({'metadata': detection.metadata, 'objects': detection.detections_data_clean}, status=200)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'Could not read detection with given ID'}, status=500)
+        
+    if request.method == 'DELETE':
+        try:
+            delete_detection(id)
+            return JsonResponse({'success': True}, status=200)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'Could not delete detection'}, status=500)
+        
+
+@csrf_exempt
+def image_original(request, id):
+    if not (id in get_all_detection_ids()):
+        return JsonResponse({"error": 'No detection with given ID could be found'}, status=404)
+    if request.method == 'GET':
+        try:
+            detection = read_detection(id, True)
+            extension = detection.image_ext.replace('.', '')
+            return HttpResponse(detection.original_image_file, content_type='image/' + extension)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'Could not retrieve image'}, status=500)
+        
+        
+@csrf_exempt
+def image_result(request, id):
+    if not (id in get_all_detection_ids()):
+        return JsonResponse({"error": 'No detection with given ID could be found'}, status=404)
+    if request.method == 'GET':
+        try:
+            detection = read_detection(id, True)
+            extension = detection.image_ext.replace('.', '')
+            return HttpResponse(detection.result_image_file, content_type='image/' + extension)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'Could not retrieve image'}, status=500)
     
-# todo for kursach:
 
-# change github repo link!!
-
-# /detection/run
-# 	run detection on specified image that we send
-
-# /detection/run-again
-
-# /detection/history
-# 	get overview list of all detections that were executed
-
-# /detection/detail/:id
-
-# /detection/delete/:id
-
-# detections are persisted in detections/ folder
-# each detection looks like this
-
-# 15 (folder)
-# 	result_img.jpg
-# 	detection_data.npy
-# 	original_img.jpg
-
+@csrf_exempt
+def detections_overview(request):
+    if request.method == 'GET':
+        try:
+            ids = get_all_detection_ids()
+            result = []
+            for id in ids:
+                detection = read_detection(id)
+                result.append({'id': id, 'metadata': detection.metadata, 'objects': detection.detections_data_clean})
+            return JsonResponse({'detections': result}, status=200)
+        except:
+            traceback.print_exc()
+            return JsonResponse({"error": 'Could not retrieve detections'}, status=500)
 
