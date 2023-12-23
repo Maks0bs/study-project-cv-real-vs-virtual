@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Redirect } from 'react-router-dom'
 import Settings from '../../../components/Settings'
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
-import { faCog } from '@fortawesome/free-solid-svg-icons'
+import { faCog, faPaw, faPlay, faHistory } from '@fortawesome/free-solid-svg-icons'
 import NavItem from "../../../../components/reusables/navbar/NavItem";
 import ModalRoot from '../../../../components/ModalRoot/ModalRoot';
+import './MainMenu.css';
 
 /**
  * This navigation bar is displayed on all pages, that
@@ -19,6 +19,8 @@ class ClassroomMenu extends Component {
 			display: false,
 			settingsIconInFocus: false,
 			showSettings: false,
+			showBrandSeparator: true,
+			hoveredBrand: true,
 		}
 	}
 
@@ -37,14 +39,14 @@ class ClassroomMenu extends Component {
 
 	toggleNavbar = (e) => {
 		e.preventDefault();
-		this.setState({display: !this.state.display});
+		this.setState({display: !this.state.display, showBrandSeparator: !this.state.showBrandSeparator});
 	}
 			
 	render() {
 		let { pathname } = this.props.location;
-		let { redirectToHome, display, showSettings } = this.state;
+		let { display, showSettings, showBrandSeparator } = this.state;
 		return (
-			<nav className="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+			<nav className="navbar navbar-expand-lg navbar-light sticky-top" style={{backgroundColor: 'lightblue'}}>
 				<ModalRoot show={showSettings} hideModal={this.hideSettingsModal}>
 					{showSettings && (
 						<Settings hideModal={this.hideSettingsModal}/>
@@ -58,34 +60,48 @@ class ClassroomMenu extends Component {
 					<span className="navbar-toggler-icon" />
 				</button>
 				<div className={(display ? '' : 'collapse ') + "navbar-collapse"}>
-					<NavItem pageURI={pathname} path={pathname} name="Animal detector" brand/>
-					<ul className="navbar-nav mr-auto">
+					<NavItem 
+
+						pageURI={pathname}
+						path={pathname}
+						brand
+					>
+						<span className='gentle-hover-shake'>
+							<Icon icon={faPaw}/> Animal breed detector
+						</span>
+					</NavItem>
+					{showBrandSeparator && (
+						<div style={{'borderLeft': '1px solid gray', 'height': '40px'}}></div>
+					)}
+					<ul className="navbar-nav mr-auto ml-3">
 						<NavItem
 							pageURI={pathname}
 							path="/run"
-							name="Run detection"
+							name="Run new detection"
 							key={-2}
-						/>
+						>
+							<Icon icon={faPlay} size='sm'/> Run new detection
+						</NavItem>
 						<NavItem
 							pageURI={pathname}
 							path="/overview"
 							name="History"
 							key={-1}
-						/>
+						>
+							<Icon icon={faHistory} size='sm'/> History
+						</NavItem>
+						{this.props.children}
 					</ul>
 					<ul className="navbar-nav">
-						<Icon
-							className='link-primary'
-							type='button'
-							style={{display: 'flex', cursor: 'pointer', color: this.state?.settingsIconInFocus ? 'black' : 'gray'}}
-							icon={faCog}
-							size={'2x'}
+						<NavItem
+							pageURI={pathname}
+							name="Settings"
 							onClick={this.showSettingsModal}
-							onMouseEnter={this.toggleSettingsHover} 
-							onMouseLeave={this.toggleSettingsHover}
-						/>
+							key={0}
+						>
+							<Icon icon={faCog} size='sm'/> Settings 
+						</NavItem>
 					</ul>
-					{redirectToHome && (<Redirect to="/" />)}
 				</div>
 			</nav>
 		);

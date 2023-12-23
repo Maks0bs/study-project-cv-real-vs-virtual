@@ -18,7 +18,7 @@ class App extends Component {
                     <ToastRoot />
                     <Switch>
                         <Route
-                            path="/"
+                            path=""
                             component={MainRouter}
                         />
                     </Switch>

@@ -11,31 +11,36 @@ import PropTypes from "prop-types";
  * @component
  */
 let NavItem = props => {
+    let options = {};
+    if (props.onClick) {
+        options.onClick = props.onClick;
+        options.to = props.pageURI;
+    } else if (props.path) {
+        options.to = props.path;
+    }
     if (props.brand){
         return (
-            <Link className="navbar-brand" to={props.path}
+            <Link 
+                className="navbar-brand"
+                onClick={props.onClick}
+                {...options}
             >
-                {props.name}
+                {props.children}
             </Link>
         )
     }
     return (
         <li
-            className={(props.path === props.pageURI) ? 'nav-item active' : 'nav-item'}
+            
         >
             <Link
-                to={props.path}
-                className={props.disabled ? 'nav-link disabled' : 'nav-link'}
-                style={{
-                    textTransform: props.dynamic ? 'none' : ''
-
-                }}
+                {...options}
+                className={
+                    (props.disabled ? 'nav-link disabled' : 'nav-link') + ' ' +
+                    (props.path === props.pageURI ? 'nav-item active font-weight-bold' : 'nav-item')
+                }
             >
-                {props.dynamic ? (
-                    <i>{props.name}</i>
-                ) : (
-                    props.name
-                )}
+                {props.children}   
             </Link>
         </li>
     );
@@ -46,7 +51,7 @@ NavItem.propTypes = {
      * The path to compare to in order to find out, if this NavItem
      * has a link to the page, that is currently active
      */
-    path: PropTypes.string.isRequired,
+    path: PropTypes.string,
     /**
      * The URL of the current active page
      */
@@ -58,16 +63,12 @@ NavItem.propTypes = {
     /**
      * The name that should primarily be displayed on the item
      */
-    name: PropTypes.string.isRequired,
+    name: PropTypes.string,
     /**
      * Set true to specify, that this NavItem should be displayed bigger
      * normally put to the left or to the right of the navigation bar
      */
     brand: PropTypes.bool,
-    /**
-     * Set true if this NavItem isn't always present on the navigation bar
-     */
-    dynamic: PropTypes.bool
 }
 NavItem.defaultProps = {
     path: '/',

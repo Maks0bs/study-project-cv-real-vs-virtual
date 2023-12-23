@@ -1,4 +1,42 @@
 import PropTypes from "prop-types";
+import { REACT_APP_API_URL } from '../constants'
+import { toast } from 'react-toastify'
+
+export let getApiUrl = (path) => {
+    return `${REACT_APP_API_URL}/${path}`;
+}
+
+export let makeApiServiceProxyRequest = (url, method, body, successCallback, errorCallback) => {
+    fetch(getApiUrl(url), {
+        method: method,
+        body: body ?? undefined
+        // Add form data and parameters here
+    })
+        .then((response) => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            return data;
+        })
+        .then(successCallback)
+        .catch((error) => {
+            errorCallback(error);
+            toast.error(error.message ?? JSON.stringify(error));
+            console.error(error);
+        });
+}
+
+export let getSettings = () => {
+    return JSON.parse(localStorage.getItem('detection_settings'));
+}
+
+export let setSettings = (scoreThreshold, boxesCount) => {
+    localStorage.setItem('detection_settings', JSON.stringify({
+        scoreThreshold: scoreThreshold,
+        boxesCount: boxesCount
+    }));
+}
 
 /**
  * @description <b>Shallowly</b> put one element at `startIndex` to the
@@ -10,7 +48,7 @@ import PropTypes from "prop-types";
  * @param {number} startIndex the index of the element
  * to remove from the list and put to another position
  * @param {number} endIndex the position we want to insert the new element into
- * @returns {any[]} deep copwqqqqqqqqqqqqqqqqqqqqqqqqqqqqy of the reordered given array
+ * @returns {any[]} deep copy of the reordered given array
  */
 export let reorderArrayShallow = (arr, startIndex, endIndex) => {
     let result = [...arr]

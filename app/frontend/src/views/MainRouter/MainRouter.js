@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import { Switch, Route } from 'react-router-dom'
-import MainMenu from './components/MainMenu'
-import Main from './views/Main'
-import CourseList from './views/CourseList'
+import { Switch, Route } from 'react-router-dom';
+import MainMenu from './components/MainMenu';
+import Main from './views/Main';
+import RunDetection from './views/RunDetection';
+import DetectionDetail from './views/DetectionDetail';
+import {join as joinPaths} from 'path';
 
 /**
  * @namespace components.views.classroom
@@ -28,16 +30,16 @@ class MainRouter extends Component {
 						component={Main}
 					/>
 					<Route
-						exact path={`${path}/run`}
-						component={CourseList}
+						exact path={`${joinPaths(path, 'run')}`}
+						component={RunDetection}
 					/>
 					<Route
-						exact path={`${path}/overview`}
-						component={CourseList}
+						exact path={`${joinPaths(path, 'overview')}`}
+						component={RunDetection}
 					/>
 					<Route
-						exact path={`${path}/detection/:id`}
-						component={CourseList}
+						exact path={`${joinPaths(path, 'detection', ':id')}`}
+						component={DetectionDetail}
 					/>
 				</Switch>
 			</div>
