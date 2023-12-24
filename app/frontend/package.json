@@ -42,12 +42,10 @@
   },
   "scripts": {
     "dev": "react-scripts --openssl-legacy-provider start",
-    "build": "react-scripts build",
+    "build": "react-scripts --openssl-legacy-provider build",
     "serve": "serve -s build -l 3000",
-    "test": "jest --config ./jest.config.json",
     "eject": "react-scripts eject",
     "start": "serve -s build",
-    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install && npm run build && npm install -g serve",
     "docs": "jsdoc -c jsdoc.conf.json"
   },
   "eslintConfig": {
@@ -62,10 +60,8 @@
   "keywords": [
     "frontend",
     "react",
-    "learn",
-    "js",
-    "redux"
+    "js"
   ],
-  "author": "maks0bs",
+  "author": "Kseniia Ivanchenko",
   "license": "ISC"
 }

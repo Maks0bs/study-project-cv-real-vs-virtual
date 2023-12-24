@@ -4,8 +4,12 @@ import { makeApiServiceProxyRequest, getApiUrl } from '../../../../services/help
 import BigLoadingCentered from '../../../../components/reusables/BigLoadingCentered'
 import { Redirect } from 'react-router-dom';
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
-import { faRedo, faTrash, faArrowLeft, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import { faRedo, faTrash, faArrowLeft, faInfoCircle, faEye } from '@fortawesome/free-solid-svg-icons'
 import ModalRoot from '../../../../components/ModalRoot';
+import NavItem from '../../../../components/reusables/navbar/NavItem';
+import DetectionMetadata from './DetectionMetadata';
+import { toast } from 'react-toastify'
+import DetectionObjectsList from './DetectionObjectsList';
 
 class DetectionDetail extends Component {
 
@@ -22,6 +26,32 @@ class DetectionDetail extends Component {
 
 	get id() {
 		return this.props?.match?.params?.id
+	}
+
+	get pathname() {
+		return this.props?.location?.pathname;
+	}
+
+	componentDidMount() {
+		this.loadData();
+
+		this.navigationComponent = (
+			<NavItem
+				pageURI={this.pathname}
+				path={`/detection/${this.id}`}
+				name="Detection detail"
+				key={-1}
+			>
+				<Icon icon={faEye} size='sm'/> Detection result {this.id}
+			</NavItem>
+		)
+
+		this.props.addNavigation(this.navigationComponent);
+	}
+
+	componentWillUnmount() {
+		this.props.removeNavigation(this.navigationComponent);
+		this.navigationComponent = null;
 	}
 
 	loadData = () => {
@@ -43,10 +73,25 @@ class DetectionDetail extends Component {
 		}
 
 		this.setState({loading: true});
+
 		makeApiServiceProxyRequest(`detection/${this.id}/rerun`, 'put', JSON.stringify(body),
 			(data) => {
 				if (data?.success) {
 					this.loadData();
+					toast.success(`Sucessfully executed animal detection again`);
+				}
+			},
+			() => this.setState({loading: false})
+		);
+	}
+
+	handleDelete = () => {
+		this.setState({loading: true});
+		makeApiServiceProxyRequest(`detection/${this.id}`, 'delete', undefined,
+			(data) => {
+				if (data?.success) {
+					this.setState({ redirectToOverview: true })
+					toast.info(`Detection ${this.id} was deleted`);
 				}
 			},
 			() => this.setState({loading: false})
@@ -91,7 +136,7 @@ class DetectionDetail extends Component {
                 >
 					<img
 						src={getApiUrl(`detection/${this.id}/image/original`)}
-						alt="Original image"
+						alt="Original"
 						className="img-fluid"
 					/>
 				</div>
@@ -105,16 +150,22 @@ class DetectionDetail extends Component {
 					<p>Are you sure that you want to delete this detection?</p>
 					<div className='d-flex flex-nowrap'>
 						<div className="ml-auto ml-3">
-							<button onClick={this.handleRerun} className="btn btn-raised mr-3" disabled={loading}>
+							<button onClick={this.hideModal} className="btn btn-raised mr-3" disabled={loading}>
 								Cancel
 							</button>
-							<button onClick={this.handleRerun} className="btn btn-danger btn-raised" disabled={loading}>
+							<button onClick={this.handleDelete} className="btn btn-danger btn-raised" disabled={loading}>
 								Yes, delete
 							</button>
 						</div>
 					</div>
 					{loading && (<BigLoadingCentered></BigLoadingCentered>)}
 				</div>
+			);
+		}
+
+		if (!data) {
+			return (
+				<BigLoadingCentered></BigLoadingCentered>
 			);
 		}
 
@@ -126,8 +177,8 @@ class DetectionDetail extends Component {
 				{redirectToOverview && (<Redirect to={`/overview`} />)}
 				<div className="card">
 					<div className="card-body">
-						<div className='d-flex flex-nowrap mb-3'>
-							<div className="mr-auto ml-3">
+						<div className='d-flex flex-wrap mb-3'>
+							<div className="mr-auto">
 								<button onClick={this.redirectToOverview} className="btn btn-raised">
 									<Icon icon={faArrowLeft} size='sm'/> Back to overview
 								</button>
@@ -147,17 +198,35 @@ class DetectionDetail extends Component {
 								) : (
 									<img 
 										src={getApiUrl(`detection/${this.id}/image/result?${new Date().getTime()}`)}
-										alt="Result image"
+										alt="Result"
 										className="img-fluid img-thumbnail"
 										style={imageStyle}
 									/>
 								)
 							}
-							
 						</div>
 						<hr></hr>
-						<div className='d-flex flex-nowrap'>
-							<div className="mr-auto ml-3">
+						<div className="row my-3" style={{display: (data?.metadata && data?.objects) ? '' : 'none'}}>
+							<div className="col-md-5 align-items-center">
+								<div className='col-md-12'>
+									<h3 className='text-center'>Metadata</h3>
+									<div className="table-responsive-md">
+										<DetectionMetadata metadata={data?.metadata ?? {}} />
+									</div>
+								</div>
+							</div>
+							<div className="col-md-7 align-items-center">
+								<div className='col-md-12'>
+									<h3 className='text-center'>Detected animals</h3>
+									<div className="table-responsive-md">
+										<DetectionObjectsList objects={data?.objects ?? []} />
+									</div>
+								</div>
+							</div>
+						</div>
+						<hr></hr>
+						<div className='d-flex flex-wrap'>
+							<div className="mr-auto">
 								<button onClick={this.handleRerun} className="btn btn-primary btn-raised" disabled={loading}>
 									<Icon icon={faRedo} size='sm'/> Run analysis again
 								</button>

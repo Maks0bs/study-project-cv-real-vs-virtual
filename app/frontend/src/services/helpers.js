@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { REACT_APP_API_URL } from '../constants'
 import { toast } from 'react-toastify'
 
@@ -10,7 +9,6 @@ export let makeApiServiceProxyRequest = (url, method, body, successCallback, err
     fetch(getApiUrl(url), {
         method: method,
         body: body ?? undefined
-        // Add form data and parameters here
     })
         .then((response) => response.json())
         .then(data => {
@@ -38,81 +36,6 @@ export let setSettings = (scoreThreshold, boxesCount) => {
     }));
 }
 
-/**
- * @description <b>Shallowly</b> put one element at `startIndex` to the
- * `endIndex` position, shifting all other elements. Imagine it
- * like grabbing element at `startIndex` and dropping it off
- * at the position `endIndex`
- * @function
- * @param {any[]} arr array to reorder
- * @param {number} startIndex the index of the element
- * to remove from the list and put to another position
- * @param {number} endIndex the position we want to insert the new element into
- * @returns {any[]} deep copy of the reordered given array
- */
-export let reorderArrayShallow = (arr, startIndex, endIndex) => {
-    let result = [...arr]
-    let [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    return result;
-};
-
-/**
- * @description <b>Shallowly</b> remove element from given array
- * @function
- * @param {any[]} arr
- * @param {number} index
- * @returns {any[]} deep copy of the reordered given array
- */
-export let removeItemShallow = (arr, index) => {
-    return [
-        ...arr.slice(0, index),
-        ...arr.slice(index + 1)
-    ]
-};
-
-/**
- * @description <b>Shallowly</b> add element to given array
- * @function
- * @param {any[]} arr array to reorder
- * @param {number} index
- * @param {any} element
- * @returns {any[]} deep copy of the reordered given array
- */
-export let addItemShallow = (arr, index, element) => {
-    return [
-        ...arr.slice(0, index),
-        element,
-        ...arr.slice(index)
-    ]
-};
-
-export let customPropTypes = {
-    component: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func,
-        PropTypes.string
-    ]),
-    user: PropTypes.oneOfType([
-        PropTypes.shape({
-            _id: PropTypes.string,
-            name: PropTypes.string,
-            activated: PropTypes.bool
-        }),
-        PropTypes.bool
-    ])
-}
-
-export let propTypesByName = {
-    authenticatedUser: PropTypes.oneOfType([
-        PropTypes.shape({
-            _id: PropTypes.string,
-            name: PropTypes.string,
-            activated: PropTypes.bool
-        }),
-        PropTypes.bool
-    ])
-}
 export let transitionStyles = {
     fade: {
         entering: {

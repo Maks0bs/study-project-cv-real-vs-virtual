@@ -2,13 +2,6 @@ import React, { Component } from 'react';
 import { toast } from 'react-toastify'
 import { getSettings, setSettings } from '../../../services/helpers';
 
-/**
- * Used to display modals with any custom component inside
- * There should only be one ModalRoot per app
- *
- * @memberOf components.views.serviceComponents
- * @component
- */
 class Settings extends Component {
     constructor(props){
         super(props);

@@ -1,2 +1,2 @@
-import Signin from './Settings'
-export default Signin
+import Settings from './Settings'
+export default Settings

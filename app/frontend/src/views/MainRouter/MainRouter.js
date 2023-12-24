@@ -5,25 +5,43 @@ import Main from './views/Main';
 import RunDetection from './views/RunDetection';
 import DetectionDetail from './views/DetectionDetail';
 import {join as joinPaths} from 'path';
+import DetectionsOverview from './views/DetectionsOverview/DetectionsOverview';
 
 /**
- * @namespace components.views.classroom
- */
-
-/**
- * This router is responsible for routing to all links that are
- * used by authenticated users. This is the core of the website,
+ * This router is responsible for routing to all components.
+ * This is the core of the website,
  * all most important features are on this router
- * @memberOf components.views.classroom
+ * @memberOf components.views
  * @component
  */
 class MainRouter extends Component {
 
+	constructor(props) {
+		super(props);
+		this.state = {
+			mainMenuAdditionalComponents: []
+		};
+	}
+
+	addMainMenuAdditionalComponent = (component) => {
+
+		this.setState({ mainMenuAdditionalComponents: [...this.state.mainMenuAdditionalComponents, component]});
+	}
+
+	removeMainMenuAdditionalComponent = (component) => {
+		this.setState({ mainMenuAdditionalComponents: this.state.mainMenuAdditionalComponents.filter(c => c !== component) });
+	}
+
 	render() {
 		let { path } = this.props.match;
+		let { addMainMenuAdditionalComponent, removeMainMenuAdditionalComponent } = this;
 		return (
 			<div>
-				<MainMenu {...this.props} />
+				<MainMenu 
+					{...this.props} 
+				>
+					{this.state.mainMenuAdditionalComponents}
+				</MainMenu>
 				<Switch>
 					<Route
 						exact path={`${path}`}
@@ -35,11 +53,17 @@ class MainRouter extends Component {
 					/>
 					<Route
 						exact path={`${joinPaths(path, 'overview')}`}
-						component={RunDetection}
+						component={DetectionsOverview}
 					/>
 					<Route
 						exact path={`${joinPaths(path, 'detection', ':id')}`}
-						component={DetectionDetail}
+						render={(props) => (
+							<DetectionDetail 
+								{...props}
+								addNavigation={addMainMenuAdditionalComponent}
+								removeNavigation={removeMainMenuAdditionalComponent}
+							/>
+						)}
 					/>
 				</Switch>
 			</div>

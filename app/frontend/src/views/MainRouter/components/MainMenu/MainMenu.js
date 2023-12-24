@@ -6,13 +6,7 @@ import NavItem from "../../../../components/reusables/navbar/NavItem";
 import ModalRoot from '../../../../components/ModalRoot/ModalRoot';
 import './MainMenu.css';
 
-/**
- * This navigation bar is displayed on all pages, that
- * are indexed by the {@link components.views.classroom.ClassroomRouter}
- * @memberOf components.views.classroom
- * @component
- */
-class ClassroomMenu extends Component {
+class MainMenu extends Component {
 	constructor(props){
 		super(props);
 		this.state = {
@@ -61,14 +55,13 @@ class ClassroomMenu extends Component {
 				</button>
 				<div className={(display ? '' : 'collapse ') + "navbar-collapse"}>
 					<NavItem 
-
 						pageURI={pathname}
 						path={pathname}
 						brand
 					>
-						<span className='gentle-hover-shake'>
+						<div className='shake-on-hover'>
 							<Icon icon={faPaw}/> Animal breed detector
-						</span>
+						</div>
 					</NavItem>
 					{showBrandSeparator && (
 						<div style={{'borderLeft': '1px solid gray', 'height': '40px'}}></div>
@@ -108,4 +101,4 @@ class ClassroomMenu extends Component {
 	}
 }
 
-export default ClassroomMenu
+export default MainMenu

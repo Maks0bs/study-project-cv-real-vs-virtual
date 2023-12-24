@@ -15,7 +15,7 @@
   "templates": {
     "search": true,
     "better-docs": {
-      "name": "mmLearnJS React app",
+      "name": "Animal breed detector",
       "title": "",
       "navLinks": []
     }

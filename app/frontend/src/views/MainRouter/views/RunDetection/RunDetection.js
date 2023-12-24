@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { getSettings } from '../../../../services/helpers';
 import { makeApiServiceProxyRequest } from '../../../../services/helpers';
 import { Redirect } from 'react-router-dom';
+import { toast } from 'react-toastify'
 import BigLoadingCentered from '../../../../components/reusables/BigLoadingCentered'
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
 import { faPlay, faUpload } from '@fortawesome/free-solid-svg-icons'
@@ -58,6 +59,7 @@ class RunDetection extends Component {
 		makeApiServiceProxyRequest('detection/run', 'post', body, 
 			(data) => {
 				this.setState({ loading: false, detectionIdForRedirect: data?.id });
+				toast.success(`Sucessfully executed animal detection`);
 			},
 			() => this.setState({loading: false})
 		);
@@ -88,12 +90,19 @@ class RunDetection extends Component {
 					<div className="card-body">
 						<div className='d-flex justify-content-center'>
 							{imagePreview ? (
-								<img 
-									src={imagePreview}
-									alt="Uploaded image"
-									className="img-fluid img-thumbnail"
-									style={imageStyle}
-								/>
+								loading ? 
+									(
+										<div style={imageStyle}>
+											<BigLoadingCentered></BigLoadingCentered>
+										</div>
+									) : (
+										<img 
+											src={imagePreview}
+											alt="Uploaded"
+											className="img-fluid img-thumbnail"
+											style={imageStyle}
+										/>
+									)
 							) : (
 								<div style={imagePlaceholderStyle}>
 									<span>No image uploaded yet</span>
@@ -101,8 +110,8 @@ class RunDetection extends Component {
 							)}
 						</div>
 						<hr></hr>
-						<div className='d-flex flex-nowrap'>
-							<div className="mr-auto ml-3">
+						<div className='d-flex flex-wrap'>
+							<div className="mr-auto">
 								{imagePreview && (
 									<button onClick={this.handleStartAnalysis} className="btn btn-primary btn-raised" disabled={loading}>
 										<Icon icon={faPlay} size='sm'/> Start Analysis
@@ -110,10 +119,10 @@ class RunDetection extends Component {
 								)}
 							</div>
 
-							<div className='d-flex justify-content-center'>
+							<div className='d-flex flex-wrap'>
 								{fileName && (
 									<div
-										className="d-flex justify-content-center mr-3 align-items-center px-2"
+										className="d-flex flex-nowrap justify-content-center mr-3 my-1 align-items-center px-2"
 										style={{border: '1px solid lightgray', borderRadius: '7.5px'}}
 									>
 										<span className='mr-1'>{fileName}</span>
@@ -142,7 +151,6 @@ class RunDetection extends Component {
 								/>
 							</div>
 						</div>
-						{loading && (<BigLoadingCentered></BigLoadingCentered>)}
 					</div>
 				</div>
 			</div>
