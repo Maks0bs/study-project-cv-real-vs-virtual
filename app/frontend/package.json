@@ -38,6 +38,7 @@
     "redux-thunk": "^2.3.0",
     "rookout": "^0.135.0",
     "serve": "^14.2.1",
+    "taffydb": "^2.7.3",
     "uuid": "^7.0.3"
   },
   "scripts": {

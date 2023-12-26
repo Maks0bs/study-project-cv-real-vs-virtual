@@ -29,3 +29,5 @@ yarn-error.log*
 
 # jetbrains (webstorm) project files
 .idea/
+
+/docs
